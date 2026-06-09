@@ -695,30 +695,43 @@ document.getElementById('parse-btn').addEventListener('click',()=>{
   const result={company:'',contact:'',phone:'',fax:'',email:'',taxid:'',address:''};
 
   const patterns=[
-    {keys:['公司名稱','公司','company name','company'],field:'company'},
-    {keys:['公司聯絡人','聯絡人','contact person','contact','聯絡窗口'],field:'contact'},
-    {keys:['聯絡電話','電話','phone','tel','mobile','手機'],field:'phone'},
-    {keys:['傳真','fax'],field:'fax'},
-    {keys:['email','e-mail','e mail','信箱','電子郵件'],field:'email'},
-    {keys:['統一編號','統編','tax id','taxid','vat','公司統編'],field:'taxid'},
-    {keys:['公司地址','地址','address','addr'],field:'address'},
+    {keys:['公司名稱','公司名稱:','company name','company:'],field:'company'},
+    {keys:['公司聯絡人','聯絡人','contact person','contact','聯絡窗口','聯絡人:'],field:'contact'},
+    {keys:['聯絡電話','電話','phone','tel','mobile','手機','電話:','tel:'],field:'phone'},
+    {keys:['傳真','fax','fax:'],field:'fax'},
+    {keys:['email','e-mail','e mail','信箱','電子郵件','email:','e-mail:'],field:'email'},
+    {keys:['統一編號','統編','tax id','taxid','vat','公司統編','統編:','統一編號:'],field:'taxid'},
+    {keys:['公司地址','地址','address','addr','地址:'],field:'address'},
   ];
 
   lines.forEach(line=>{
-    // Try label:value or label value patterns
+    // Try label:value or label value patterns (with or without separator)
     for(const {keys,field} of patterns){
       for(const key of keys){
-        const re=new RegExp('^'+key+'[\\s:：]+(.+)','i');
+        const escaped=key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        const re=new RegExp('^'+escaped+'[\\s:：]*(.+)','i');
         const m=line.match(re);
-        if(m&&!result[field]){result[field]=m[1].trim();return;}
+        if(m&&m[1].trim()&&!result[field]){result[field]=m[1].trim();return;}
       }
     }
-    // If line looks like an email (no label matched)
+
+    // Auto-detect by content (no label)
+    // Email
     if(!result.email&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(line)){result.email=line;return;}
-    // If line looks like a phone number
-    if(!result.phone&&/^[\d\-\(\)\+\s#ext\.]{7,}$/i.test(line)){result.phone=line;return;}
-    // If line looks like a tax ID (8 digits)
-    if(!result.taxid&&/^\d{8}$/.test(line.replace(/\s/g,''))){result.taxid=line.trim();return;}
+    // Tax ID: 統編XXXXXXXX or just 8 digits
+    if(!result.taxid){
+      const taxm=line.match(/(?:統編|統一編號)?\s*(\d{8})$/);
+      if(taxm){result.taxid=taxm[1];return;}
+    }
+    // Phone: starts with digits/+, contains digits and -, #, ext
+    if(!result.phone&&/^[\d\+\(\)][\d\-\(\)\s#ext\.]{5,}$/i.test(line)){result.phone=line;return;}
+    // Chinese company name: contains 公司, 學校, 機關, 院, 協會, 中心
+    if(!result.company&&/(?:公司|學校|機關|醫院|協會|中心|大學|學院|基金會|政府|局|處|館|所)/.test(line)&&line.length>3){result.company=line;return;}
+    // Looks like a name (2-4 Chinese chars, or English name, no digits)
+    if(!result.contact&&/^[一-鿿]{2,4}$/.test(line)){result.contact=line;return;}
+    if(!result.contact&&/^[A-Za-z][A-Za-z\s]{1,20}$/.test(line)&&!line.includes('@')){result.contact=line;return;}
+    // Address: contains 市, 縣, 區, 路, 街, 號, 樓
+    if(!result.address&&/(?:市|縣|區|路|街|巷|號|樓|[Ff]loor)/.test(line)&&line.length>5){result.address=line;return;}
   });
 
   // Fill fields
@@ -726,7 +739,7 @@ document.getElementById('parse-btn').addEventListener('click',()=>{
     if(result[f])document.getElementById('n-'+f).value=result[f];
   });
 
-  // Clear paste box and show feedback
+  // Green border feedback
   document.getElementById('n-paste').style.borderColor='#34c759';
   setTimeout(()=>document.getElementById('n-paste').style.borderColor='#d2d2d7',1500);
 });
