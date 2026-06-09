@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quotation Hub</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;background:#f5f5f7;color:#1d1d1f;font-size:14px}
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:#f5f5f7;display:flex;align-items:center;justify-content:center;z-index:100}
+.login-box{background:#fff;border-radius:16px;padding:36px 32px;width:340px;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+.login-box h2{font-size:20px;font-weight:700;margin-bottom:6px;text-align:center}
+.login-box p{font-size:13px;color:#6e6e73;margin-bottom:24px;text-align:center}
+.login-box input{width:100%;border:1px solid #d2d2d7;border-radius:8px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;transition:border .15s}
+.login-box input:focus{border-color:#0071e3;box-shadow:0 0 0 3px rgba(0,113,227,.12)}
+.login-btn{width:100%;padding:12px;background:#0071e3;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:4px}
+.login-btn:hover{background:#0077ed}
+.login-err{font-size:12px;color:#ff3b30;margin-top:10px;text-align:center;display:none}
+/* APP */
+#app{display:none}
+.wrap{max-width:780px;margin:0 auto;padding:24px 16px 80px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+h1{font-size:19px;font-weight:700}
+.subtitle{font-size:12px;color:#6e6e73;margin-bottom:20px}
+.logout-btn{font-size:12px;color:#6e6e73;background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px}
+.logout-btn:hover{background:#e5e5ea;color:#1d1d1f}
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:#e5e5ea;border-radius:10px;padding:3px}
+.tab{flex:1;padding:8px;border:none;background:transparent;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:#6e6e73;font-family:inherit;transition:all .15s}
+.tab.on{background:#fff;color:#1d1d1f;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.pane{display:none}.pane.on{display:block}
+.card{background:#fff;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.slabel{font-size:11px;font-weight:600;color:#6e6e73;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+input[type=text],input[type=email],input[type=tel],input[type=search],input[type=number]{width:100%;border:1px solid #d2d2d7;border-radius:8px;padding:8px 11px;font-size:13px;font-family:inherit;background:#fff;color:#1d1d1f;outline:none;transition:border .15s}
+input:focus{border-color:#0071e3;box-shadow:0 0 0 3px rgba(0,113,227,.12)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.fl{font-size:12px;color:#6e6e73;margin-bottom:4px}
+button{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:8px;border:1px solid #d2d2d7;background:#fff;color:#1d1d1f;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
+button:hover{background:#f5f5f7}
+button:active{transform:scale(.98)}
+.bp{background:#0071e3;color:#fff;border-color:#0071e3}.bp:hover{background:#0077ed;border-color:#0077ed}
+.bs{padding:6px 11px;font-size:12px}
+.bd{border-color:#ff3b30;color:#ff3b30}.bd:hover{background:#fff0ef}
+.bb{border:1.5px solid #d2d2d7;border-radius:10px;padding:11px 14px;cursor:pointer;background:#fff;display:flex;flex-direction:column;gap:2px;flex:1;font-family:inherit;transition:all .15s}
+.bb:hover,.bb.on{border-color:#0071e3;background:#f0f7ff}
+.bb .bn{font-size:14px;font-weight:600}.bb.on .bn{color:#0071e3}
+.bb .bsub{font-size:11px;color:#6e6e73}
+.ci,.pi{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #e5e5ea;border-radius:8px;cursor:pointer;background:#fff;margin-bottom:5px;transition:all .15s}
+.ci:hover,.pi:hover{background:#f5f5f7;border-color:#c7c7cc}
+.ci.on{border-color:#0071e3;background:#f0f7ff}
+.pi.on{border-color:#34c759;background:#f0faf3}
+.cn{font-size:13px;font-weight:500}.ci.on .cn{color:#0071e3}
+.pn{font-size:13px;font-weight:500}.pi.on .pn{color:#1a7f3c}
+.csb,.psb{font-size:11px;color:#6e6e73;margin-top:1px}
+.tag{padding:2px 8px;border-radius:20px;font-size:11px;background:#f5f5f7;color:#6e6e73;white-space:nowrap;flex-shrink:0}
+.ptag{padding:2px 8px;border-radius:20px;font-size:11px;background:#e8f9ee;color:#1a7f3c;white-space:nowrap;flex-shrink:0;font-weight:500}
+.panel{background:#f5f5f7;border-radius:10px;padding:14px;margin-top:10px}
+.ob{font-size:11px;padding:3px 8px;border-radius:20px;background:#fff3cd;color:#856404;display:none}
+.mok{font-size:12px;color:#1a7f3c;margin-top:6px;display:none}
+.sb{max-height:230px;overflow-y:auto;margin-bottom:10px}
+.sw{position:relative;margin-bottom:10px}
+.sw::before{content:"⌕";position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:16px;color:#aeaeb2;pointer-events:none}
+.sw input{padding-left:32px}
+.hl{background:#fff176;border-radius:2px;padding:0 1px}
+.pdr{display:grid;grid-template-columns:1fr 62px 88px 26px;gap:6px;align-items:center;padding:8px 10px;background:#f5f5f7;border-radius:8px;margin-top:6px}
+.pdn{font-size:12px;color:#6e6e73;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pdr input{height:30px;font-size:13px}
+.delbtn{width:26px;height:26px;padding:0;border-radius:6px;border:1px solid #ff3b30;color:#ff3b30;background:transparent;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.delbtn:hover{background:#fff0ef}
+#gen-btn{width:100%;padding:13px;font-size:15px;font-weight:600;border-radius:10px;background:#0071e3;color:#fff;border-color:#0071e3;margin-top:4px}
+#gen-btn:hover{background:#0077ed}
+.hint{font-size:12px;color:#6e6e73;margin-top:8px;text-align:center}
+.badge-v{background:#dbeafe;color:#1d4ed8}
+.badge-p{background:#dcfce7;color:#166534}
+.qbadge{font-size:11px;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.ql1{padding:12px 14px;border:1px solid #e5e5ea;border-radius:10px;background:#fff;margin-bottom:7px;cursor:pointer;transition:all .15s}
+.ql1:hover{border-color:#0071e3;background:#f0f7ff}
+.ql1.open{border-color:#0071e3;background:#f0f7ff;border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0}
+.ql1 .l1name{font-size:14px;font-weight:600;color:#1d1d1f}
+.ql1.open .l1name{color:#0071e3}
+.ql1 .l1sub{font-size:11px;color:#6e6e73;margin-top:2px}
+.ql1-body{display:none;border:1px solid #0071e3;border-top:none;border-radius:0 0 10px 10px;background:#f8faff;padding:10px 12px;margin-bottom:7px}
+.ql2{margin-bottom:6px}
+.ql2-hd{font-size:12px;font-weight:500;color:#6e6e73;padding:6px 8px;cursor:pointer;display:flex;align-items:center;gap:8px;border-radius:8px;transition:background .1s}
+.ql2-hd:hover{background:#e8f0fe}
+.ql2-hd .arrow{font-size:10px;transition:transform .15s;color:#0071e3}
+.ql2-hd.open .arrow{transform:rotate(90deg)}
+.year-pill{background:#0071e3;color:#fff;font-size:13px;font-weight:700;padding:3px 14px;border-radius:20px;letter-spacing:.02em}
+.ql2-body{display:none;padding-left:4px;padding-top:4px}
+.ql3{padding:12px 14px;border:1px solid #e5e5ea;border-radius:8px;background:#fff;margin-bottom:8px}
+.ql3 .l3pi{font-size:12px;font-weight:600;color:#1d1d1f}
+.ql3 .l3sub-big{font-size:13px;color:#1d1d1f;margin-top:3px;font-weight:500}
+.ql3-detail{margin-top:10px;padding-top:10px;border-top:1px solid #e5e5ea}
+.ql3-detail table{width:100%;border-collapse:collapse;font-size:12px}
+.ql3-detail th{text-align:left;color:#6e6e73;padding:4px 8px;font-weight:500;border-bottom:1px solid #e5e5ea}
+.ql3-detail td{padding:5px 8px;border-bottom:1px solid #f0f0f0}
+.upload-area{border:2px dashed #d2d2d7;border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .15s}
+.upload-area:hover,.upload-area.drag{border-color:#0071e3;background:#f0f7ff}
+.upload-area p{font-size:13px;color:#6e6e73;margin-top:8px}
+.status{font-size:12px;color:#6e6e73;padding:12px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h2>📋 Quotation Hub</h2>
+    <p>VOICity / PORTO 3C科技</p>
+    <input type="email" id="login-email" placeholder="Email" autocomplete="email">
+    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+    <button class="login-btn" id="login-btn">Sign in</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+<div class="wrap">
+  <div class="topbar">
+    <h1>📋 Quotation Hub</h1>
+    <button class="logout-btn" id="logout-btn">Sign out</button>
+  </div>
+  <div class="subtitle" id="sync-status">Loading…</div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="switchTab('generate')">Generate</button>
+    <button class="tab" onclick="switchTab('history')">History</button>
+    <button class="tab" onclick="switchTab('upload')">Upload</button>
+  </div>
+
+  <!-- GENERATE -->
+  <div class="pane on" id="pane-generate">
+  <div class="card">
+    <div class="slabel">Brand</div>
+    <div style="display:flex;gap:8px" id="brand-row">
+      <button class="bb on" data-brand="VOICity"><span class="bn">VOICity</span><span class="bsub">豐音城</span></button>
+      <button class="bb" data-brand="PORTO"><span class="bn">PORTO</span><span class="bsub">3C科技</span></button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div class="slabel" style="margin:0">Customer <span id="ccount" style="font-size:11px;font-weight:400;color:#6e6e73"></span></div>
+      <button class="bs" id="new-cust-btn">＋ New</button>
+    </div>
+    <div class="sw"><input type="search" id="csearch" placeholder="Search company, contact, email…"></div>
+    <div class="sb" id="clist"></div>
+    <div id="no-custs" style="font-size:13px;color:#6e6e73;text-align:center;padding:12px 0;display:none">No customers yet.</div>
+    <div id="no-cres" style="font-size:13px;color:#6e6e73;padding:6px 0;display:none">No match.</div>
+    <div class="panel" id="panel-edit" style="display:none">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:13px;font-weight:600" id="etitle">Edit</span>
+        <span class="ob" id="obadge">⚠ Overriding for this quote</span>
+      </div>
+      <div class="g2" style="margin-bottom:8px"><div><div class="fl">公司名稱 *</div><input id="e-company"></div><div><div class="fl">聯絡人</div><input id="e-contact"></div></div>
+      <div class="g2" style="margin-bottom:8px"><div><div class="fl">電話</div><input id="e-phone"></div><div><div class="fl">傳真</div><input id="e-fax"></div></div>
+      <div class="g2" style="margin-bottom:8px"><div><div class="fl">Email</div><input id="e-email"></div><div><div class="fl">統一編號</div><input id="e-taxid"></div></div>
+      <div style="margin-bottom:12px"><div class="fl">地址</div><input id="e-address"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="bp bs" id="save-edit-btn">✓ Save</button>
+        <button class="bs" id="use-once-btn">Use once</button>
+        <button class="bs bd" id="del-cust-btn" style="margin-left:auto">🗑 Delete</button>
+      </div>
+      <div class="mok" id="smsg">✓ Saved!</div>
+    </div>
+    <div class="panel" id="panel-new-cust" style="display:none">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">New customer</div>
+      <div style="margin-bottom:12px">
+        <div class="fl">Paste contact block (optional)</div>
+        <textarea id="n-paste" rows="5" style="width:100%;border:1px solid #d2d2d7;border-radius:8px;padding:8px 11px;font-size:12px;font-family:inherit;resize:vertical;outline:none;color:#1d1d1f;background:#fff;transition:border .15s" placeholder="公司名稱 首緯資訊科技有限公司&#10;聯絡人 謝肇謚&#10;電話 02-7723-1366&#10;Email chaoyi@firstway.com.tw&#10;統一編號 69414878&#10;地址 台北市中正區…"></textarea>
+        <button class="bs" id="parse-btn" style="margin-top:6px">⚡ Parse & fill fields</button>
+      </div>
+      <div style="border-top:1px solid #e5e5ea;padding-top:12px;margin-bottom:0">
+      <div class="g2" style="margin-bottom:8px"><div><div class="fl">公司名稱 *</div><input id="n-company"></div><div><div class="fl">聯絡人</div><input id="n-contact"></div></div>
+      <div class="g2" style="margin-bottom:8px"><div><div class="fl">電話</div><input id="n-phone"></div><div><div class="fl">傳真</div><input id="n-fax"></div></div>
+      <div class="g2" style="margin-bottom:8px"><div><div class="fl">Email</div><input id="n-email"></div><div><div class="fl">統一編號</div><input id="n-taxid"></div></div>
+      <div style="margin-bottom:12px"><div class="fl">地址</div><input id="n-address"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="bp bs" id="save-new-cust-btn">✓ Save</button>
+        <button class="bs" id="use-new-once-btn">Use once</button>
+        <button class="bs bd" id="cancel-new-cust-btn">✕ Cancel</button>
+      </div>
+      <div class="mok" id="nmsg">✓ Saved!</div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div class="slabel" style="margin:0">Products <span id="pcount" style="font-size:11px;font-weight:400;color:#6e6e73"></span></div>
+      <button class="bs" id="new-prod-btn">＋ Add</button>
+    </div>
+    <div class="sw"><input type="search" id="psearch" placeholder="Search products…"></div>
+    <div class="sb" id="plist"></div>
+    <div id="no-pres" style="font-size:13px;color:#6e6e73;padding:6px 0;display:none">No match — add above.</div>
+    <div class="panel" id="panel-new-prod" style="display:none">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Add new product</div>
+      <div style="margin-bottom:8px"><div class="fl">Model name *</div><input id="np-name"></div>
+      <div style="margin-bottom:8px"><div class="fl">Spec</div><input id="np-spec"></div>
+      <div style="margin-bottom:12px"><div class="fl">Default price (NTD)</div><input id="np-price" type="number"></div>
+      <div style="display:flex;gap:8px">
+        <button class="bp bs" id="save-prod-btn">✓ Save</button>
+        <button class="bs bd" id="cancel-prod-btn">✕ Cancel</button>
+      </div>
+      <div class="mok" id="pmsg">✓ Saved!</div>
+    </div>
+    <div id="pdetails"></div>
+  </div>
+  <div class="card">
+    <div class="slabel">Order details</div>
+    <div class="g3" style="margin-bottom:10px">
+      <div><div class="fl">Shipping (NTD)</div><input id="shipping" value="0"></div>
+      <div><div class="fl">PI serial suffix</div><input id="pi-seq" value="021C" style="font-family:monospace"></div>
+      <div><div class="fl">Payment terms</div><input id="payment" value="T/T in advance"></div>
+    </div>
+    <div class="g2">
+      <div><div class="fl">Delivery</div><input id="delivery" value="3-6個工作天"></div>
+      <div><div class="fl">Validity</div><input id="validity" value="30 days"></div>
+    </div>
+  </div>
+  <button id="gen-btn">📄 Generate quotation prompt</button>
+  <div class="hint">Copy the prompt and paste into Claude to get your Excel file.</div>
+  <div id="output-box" style="display:none;margin-top:14px">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="slabel" style="margin:0">Prompt — paste into Claude</div>
+        <button class="bs bp" id="copy-btn">Copy</button>
+      </div>
+      <pre id="output-text" style="font-size:12px;white-space:pre-wrap;word-break:break-all;background:#f5f5f7;border-radius:8px;padding:12px;color:#1d1d1f;font-family:monospace;max-height:260px;overflow-y:auto"></pre>
+    </div>
+  </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="pane" id="pane-history">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div class="slabel" style="margin:0">Past Quotations <span id="qcount" style="font-size:11px;font-weight:400;color:#6e6e73"></span></div>
+      <select id="brand-filter" style="border:1px solid #d2d2d7;border-radius:8px;padding:6px 10px;font-size:12px;font-family:inherit;background:#fff;outline:none">
+        <option value="">All brands</option>
+        <option value="VOICity">VOICity</option>
+        <option value="PORTO">PORTO</option>
+      </select>
+    </div>
+    <div class="sw"><input type="search" id="qsearch" placeholder="Search company, PI number, product…"></div>
+    <div id="qlist"></div>
+    <div id="no-qres" style="font-size:13px;color:#6e6e73;text-align:center;padding:16px 0;display:none">No quotations found.</div>
+  </div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="pane" id="pane-upload">
+  <div class="card">
+    <div class="slabel">Upload past quotations</div>
+    <p style="font-size:13px;color:#6e6e73;margin-bottom:14px">Upload .xlsx quotation files to add them to the database. Duplicate PI numbers are skipped.</p>
+    <div class="upload-area" id="upload-area">
+      <div style="font-size:32px">📂</div>
+      <p>Click to select files or drag & drop</p>
+      <p style="font-size:11px;margin-top:4px">Supports multiple .xlsx files</p>
+      <input type="file" id="upload-input" accept=".xlsx" multiple style="display:none">
+    </div>
+    <div id="upload-log" style="margin-top:14px;font-size:12px;color:#6e6e73;max-height:200px;overflow-y:auto"></div>
+  </div>
+  </div>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL='https://kyhwsxdtrgmrkwjpftjl.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5aHdzeGR0cmdtcmt3anBmdGpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzYwNTMsImV4cCI6MjA5NjE1MjA1M30.FpZevI14015RdYwoKr1DuHiMX8q7GBYpvNsReRw3FtQ';
+const sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+
+// ── AUTH ──────────────────────────────────────────────────
+async function checkSession(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){showApp();}else{showLogin();}
+}
+
+function showLogin(){
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
+function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  loadAll();
+}
+
+document.getElementById('login-btn').addEventListener('click',async()=>{
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  const err=document.getElementById('login-err');
+  err.style.display='none';
+  if(!email||!password){err.textContent='Please enter email and password.';err.style.display='block';return;}
+  const btn=document.getElementById('login-btn');
+  btn.textContent='Signing in…';btn.disabled=true;
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  btn.textContent='Sign in';btn.disabled=false;
+  if(error){err.textContent=error.message;err.style.display='block';}
+  else showApp();
+});
+
+// Allow Enter key on password field
+document.getElementById('login-password').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-btn').click();});
+document.getElementById('login-email').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-password').focus();});
+
+document.getElementById('logout-btn').addEventListener('click',async()=>{
+  await sb.auth.signOut();showLogin();
+});
+
+// ── DB HELPERS ────────────────────────────────────────────
+async function dbGet(table,qs=''){const{data,error}=await sb.from(table).select('*');if(error)throw error;return data;}
+async function dbGetQ(table){const{data,error}=await sb.from(table).select('*').order('created_at',{ascending:false}).limit(500);if(error)throw error;return data;}
+async function dbInsert(table,row){const{data,error}=await sb.from(table).insert(row).select();if(error)throw error;return data;}
+async function dbUpdate(table,id,row){const{data,error}=await sb.from(table).update(row).eq('id',id).select();if(error)throw error;return data;}
+async function dbDelete(table,id){const{error}=await sb.from(table).delete().eq('id',id);if(error)throw error;}
+
+let customers=[],allProds=[],quotations=[],selIdx=-1,override=null,selProds=[],brand='VOICity';
+
+async function loadAll(){
+  setStatus('Loading…');
+  try{
+    [customers,allProds,quotations]=await Promise.all([
+      dbGet('quotation_customers'),
+      dbGet('quotation_products'),
+      dbGetQ('quotation_records'),
+    ]);
+    customers.sort((a,b)=>a.company.localeCompare(b.company,'zh-TW'));
+    allProds.sort((a,b)=>a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    renderC();renderP();renderQ();
+    setStatus(`✓ ${customers.length} customers · ${allProds.length} products · ${quotations.length} past quotes`);
+  }catch(e){setStatus('⚠ Error: '+e.message);}
+}
+function setStatus(m){document.getElementById('sync-status').textContent=m;}
+
+// ── CUSTOMERS ─────────────────────────────────────────────
+function hl(t,q){if(!q)return t;return t.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<span class="hl">$1</span>');}
+
+function renderC(){
+  const q=(document.getElementById('csearch').value||'').trim().toLowerCase();
+  const list=document.getElementById('clist');list.innerHTML='';
+  if(!customers.length){document.getElementById('no-custs').style.display='block';return;}
+  document.getElementById('no-custs').style.display='none';
+  const fil=customers.map((c,i)=>({c,i})).filter(({c})=>!q||(c.company+' '+c.contact+' '+c.phone+' '+c.email).toLowerCase().includes(q));
+  document.getElementById('no-cres').style.display=fil.length?'none':'block';
+  document.getElementById('ccount').textContent='('+customers.length+')';
+  fil.slice(0,100).forEach(({c,i})=>{
+    const d=document.createElement('div');d.className='ci'+(selIdx===i?' on':'');d.dataset.idx=i;
+    d.innerHTML='<div style="flex:1;min-width:0"><div class="cn">'+hl(c.company,q)+'</div><div class="csb">'+[c.contact,c.phone].filter(Boolean).join(' · ')+'</div></div><span class="tag">'+(c.taxid||'—')+'</span>';
+    list.appendChild(d);
+  });
+  if(fil.length>100){const m=document.createElement('div');m.style.cssText='font-size:12px;color:#6e6e73;padding:8px 12px;text-align:center';m.textContent='Showing 100 of '+fil.length+' — type to narrow';list.appendChild(m);}
+}
+document.getElementById('clist').addEventListener('click',function(e){
+  const ci=e.target.closest('.ci');if(!ci)return;
+  const i=parseInt(ci.dataset.idx);selIdx=i;override=null;
+  fillE(customers[i]);document.getElementById('obadge').style.display='none';
+  document.getElementById('etitle').textContent=customers[i].company;
+  showP('edit-c');renderC();
+});
+function fillE(c){['company','contact','phone','fax','email','taxid','address'].forEach(f=>document.getElementById('e-'+f).value=c[f]||'');}
+function getE(){return ['company','contact','phone','fax','email','taxid','address'].reduce((o,f)=>{o[f]=document.getElementById('e-'+f).value.trim();return o;},{});}
+function getN(){return ['company','contact','phone','fax','email','taxid','address'].reduce((o,f)=>{o[f]=document.getElementById('n-'+f).value.trim();return o;},{});}
+['e-company','e-contact','e-phone','e-fax','e-email','e-taxid','e-address'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('input',()=>{if(selIdx>=0){override=getE();document.getElementById('obadge').style.display='inline-flex';}});
+});
+document.getElementById('save-edit-btn').addEventListener('click',async()=>{
+  const d=getE();if(!d.company)return;
+  if(selIdx>=0){await dbUpdate('quotation_customers',customers[selIdx].id,d);customers[selIdx]={...customers[selIdx],...d};}
+  override=null;document.getElementById('obadge').style.display='none';
+  document.getElementById('etitle').textContent=d.company;renderC();flash('smsg');
+});
+document.getElementById('use-once-btn').addEventListener('click',()=>{override=getE();document.getElementById('obadge').style.display='inline-flex';});
+document.getElementById('del-cust-btn').addEventListener('click',async()=>{
+  if(selIdx<0)return;if(!confirm('Delete '+customers[selIdx].company+'?'))return;
+  await dbDelete('quotation_customers',customers[selIdx].id);
+  customers.splice(selIdx,1);selIdx=-1;override=null;hideP('edit-c');renderC();
+});
+document.getElementById('new-cust-btn').addEventListener('click',()=>showP('new-c'));
+document.getElementById('cancel-new-cust-btn').addEventListener('click',()=>hideP('new-c'));
+document.getElementById('save-new-cust-btn').addEventListener('click',async()=>{
+  const d=getN();if(!d.company)return;
+  const res=await dbInsert('quotation_customers',d);
+  customers.push(res[0]||d);customers.sort((a,b)=>a.company.localeCompare(b.company,'zh-TW'));
+  selIdx=customers.findIndex(c=>c.company===d.company&&c.contact===d.contact);
+  override=null;fillE(d);document.getElementById('obadge').style.display='none';
+  document.getElementById('etitle').textContent=d.company;
+  ['company','contact','phone','fax','email','taxid','address'].forEach(f=>document.getElementById('n-'+f).value='');
+  renderC();flash('nmsg',()=>showP('edit-c'));
+});
+document.getElementById('use-new-once-btn').addEventListener('click',()=>{
+  const d=getN();if(!d.company)return;selIdx=-1;override=d;hideP('new-c');renderC();
+});
+document.getElementById('csearch').addEventListener('input',renderC);
+
+// ── PRODUCTS ──────────────────────────────────────────────
+function renderP(){
+  const q=(document.getElementById('psearch').value||'').trim().toLowerCase();
+  const list=document.getElementById('plist');list.innerHTML='';
+  const fil=allProds.filter(p=>!q||p.name.toLowerCase().includes(q)||(p.spec||'').toLowerCase().includes(q));
+  document.getElementById('no-pres').style.display=fil.length?'none':'block';
+  document.getElementById('pcount').textContent='('+allProds.length+')';
+  fil.slice(0,100).forEach(p=>{
+    const on=!!selProds.find(s=>s.name===p.name);
+    const d=document.createElement('div');d.className='pi'+(on?' on':'');d.dataset.pname=p.name;
+    const pt=p.price?'<span class="ptag">NT$'+Number(p.price).toLocaleString()+'</span>':'<span class="tag">—</span>';
+    d.innerHTML='<div style="flex:1;min-width:0"><div class="pn">'+hl(p.name,q)+'</div><div class="psb">'+(p.spec||'')+'</div></div>'+pt;
+    list.appendChild(d);
+  });
+  if(fil.length>100){const m=document.createElement('div');m.style.cssText='font-size:12px;color:#6e6e73;padding:8px 12px;text-align:center';m.textContent='Showing 100 of '+fil.length+' — type to narrow';list.appendChild(m);}
+  renderPD();
+}
+document.getElementById('plist').addEventListener('click',function(e){
+  const pi=e.target.closest('.pi');if(!pi)return;
+  const p=allProds.find(x=>x.name===pi.dataset.pname);if(!p)return;
+  const idx=selProds.findIndex(s=>s.name===p.name);
+  if(idx>=0)selProds.splice(idx,1);else selProds.push({...p,qty:'',price:p.price||''});
+  renderP();
+});
+function renderPD(){
+  const wrap=document.getElementById('pdetails');
+  if(!selProds.length){wrap.innerHTML='';return;}
+  wrap.innerHTML='<div class="fl" style="margin:12px 0 6px">Selected — enter qty and price:</div>';
+  selProds.forEach((p,i)=>{
+    const row=document.createElement('div');row.className='pdr';
+    row.innerHTML='<div class="pdn" title="'+p.name+'">'+p.name+'</div>'+
+      '<input type="text" placeholder="Qty" value="'+p.qty+'" data-i="'+i+'" data-f="qty" style="text-align:center">'+
+      '<input type="text" placeholder="Price" value="'+p.price+'" data-i="'+i+'" data-f="price" style="text-align:right">'+
+      '<button class="delbtn" data-i="'+i+'" title="Remove">✕</button>';
+    wrap.appendChild(row);
+  });
+}
+document.getElementById('pdetails').addEventListener('change',function(e){const el=e.target;if(!el.dataset.i)return;selProds[parseInt(el.dataset.i)][el.dataset.f]=el.value;});
+document.getElementById('pdetails').addEventListener('click',function(e){const btn=e.target.closest('.delbtn');if(!btn)return;selProds.splice(parseInt(btn.dataset.i),1);renderP();});
+document.getElementById('psearch').addEventListener('input',renderP);
+document.getElementById('new-prod-btn').addEventListener('click',()=>showP('new-p'));
+document.getElementById('cancel-prod-btn').addEventListener('click',()=>hideP('new-p'));
+document.getElementById('save-prod-btn').addEventListener('click',async()=>{
+  const name=document.getElementById('np-name').value.trim();if(!name)return;
+  const spec=document.getElementById('np-spec').value.trim();
+  const pv=document.getElementById('np-price').value.trim();
+  const price=pv?parseInt(pv):null;
+  const res=await dbInsert('quotation_products',{name,spec,price});
+  allProds.push(res[0]||{name,spec,price});
+  allProds.sort((a,b)=>a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+  ['np-name','np-spec','np-price'].forEach(id=>document.getElementById(id).value='');
+  renderP();flash('pmsg',()=>hideP('new-p'));
+});
+
+// ── BRAND ─────────────────────────────────────────────────
+document.getElementById('brand-row').addEventListener('click',function(e){
+  const bb=e.target.closest('.bb');if(!bb)return;
+  brand=bb.dataset.brand;document.querySelectorAll('.bb').forEach(b=>b.classList.toggle('on',b.dataset.brand===brand));
+});
+
+// ── GENERATE ──────────────────────────────────────────────
+document.getElementById('gen-btn').addEventListener('click',()=>{
+  const c=override||(selIdx>=0?customers[selIdx]:null);
+  if(!c){alert('Please select a customer first.');return;}
+  if(!selProds.length){alert('Please select at least one product.');return;}
+  if(selProds.some(p=>!p.qty||!p.price)){alert('Please fill in qty and price for all products.');return;}
+  const lines=selProds.map(p=>p.name+' / '+(p.spec||'')+' / '+p.qty+' / '+p.price).join('\n');
+  const prompt='Generate quotation:\nBrand: '+brand+'\nCustomer: '+c.company+'\nContact: '+(c.contact||'')+'\nPhone: '+(c.phone||'')+'\nFax: '+(c.fax||'')+'\nEmail: '+(c.email||'')+'\nTax ID: '+(c.taxid||'')+'\nAddress: '+(c.address||'')+'\nPayment: '+document.getElementById('payment').value+'\nDelivery: '+document.getElementById('delivery').value+'\nValidity: '+document.getElementById('validity').value+'\nPI seq: '+(document.getElementById('pi-seq').value||'021C')+'\nShipping: '+(document.getElementById('shipping').value||'0')+'\nProducts:\n'+lines;
+  document.getElementById('output-text').textContent=prompt;
+  document.getElementById('output-box').style.display='block';
+  document.getElementById('output-box').scrollIntoView({behavior:'smooth',block:'start'});
+});
+document.getElementById('copy-btn').addEventListener('click',()=>{
+  navigator.clipboard.writeText(document.getElementById('output-text').textContent).then(()=>{
+    const btn=document.getElementById('copy-btn');btn.textContent='✓ Copied!';setTimeout(()=>btn.textContent='Copy',2000);
+  });
+});
+
+// ── HISTORY ───────────────────────────────────────────────
+function getCore(name){
+  let s=(name||'').trim();
+  ['股份有限公司','有限公司','財團法人','社團法人'].forEach(x=>s=s.replace(x,''));
+  [' 台中分公司',' 高雄分公司',' 台北分公司',' 宜蘭營運處',' 信用卡作業部'].forEach(x=>s=s.replace(x,''));
+  return s.trim()||name.trim();
+}
+function getYear(dateStr){
+  if(!dateStr)return'Unknown';
+  let m;
+  if((m=dateStr.match(/(\d{4})/)))return m[1];
+  return'Unknown';
+}
+function getMonth(dateStr){
+  if(!dateStr)return'';
+  let m;
+  if((m=dateStr.match(/(\d{1,2})\/\d{1,2}\/\d{4}/)))return m[1].padStart(2,'0');
+  if((m=dateStr.match(/\d{4}\/(\d{1,2})/)))return m[1].padStart(2,'0');
+  return'';
+}
+
+function renderQ(){
+  const q=(document.getElementById('qsearch').value||'').trim().toLowerCase();
+  const bf=document.getElementById('brand-filter').value;
+  const list=document.getElementById('qlist');list.innerHTML='';
+  const fil=quotations.filter(r=>{
+    if(bf&&r.brand!==bf)return false;
+    if(!q)return true;
+    const prods=(r.products||[]).map(p=>p.name).join(' ');
+    return(r.pi_number+' '+r.customer_company+' '+r.customer_contact+' '+prods).toLowerCase().includes(q);
+  });
+  document.getElementById('no-qres').style.display=fil.length?'none':'block';
+  document.getElementById('qcount').textContent='('+quotations.length+')';
+
+  // Group by core company
+  const compMap=new Map();
+  fil.forEach(r=>{
+    const core=getCore(r.customer_company);
+    if(!compMap.has(core))compMap.set(core,{displayName:r.customer_company,records:[]});
+    const g=compMap.get(core);
+    if(r.customer_company&&r.customer_company.length>g.displayName.length)g.displayName=r.customer_company;
+    g.records.push(r);
+  });
+
+  [...compMap.entries()].sort((a,b)=>a[0].localeCompare(b[0],'zh-TW')).forEach(([core,{displayName,records}])=>{
+    const latestDate=records[0]?.quote_date||'';
+    const brands=[...new Set(records.map(r=>r.brand))];
+    const brandBadges=brands.map(b=>'<span class="qbadge '+(b==='VOICity'?'badge-v':'badge-p')+'">'+b+'</span>').join(' ');
+
+    const l1=document.createElement('div');l1.className='ql1';
+    l1.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
+      '<div><div class="l1name">'+displayName+'</div>'+
+      '<div class="l1sub">'+records.length+' quotation'+(records.length>1?'s':'')+' · latest: '+latestDate+'</div></div>'+
+      '<div style="display:flex;gap:4px;align-items:center">'+brandBadges+'<span style="font-size:14px;color:#0071e3;margin-left:4px">›</span></div></div>';
+
+    const l1body=document.createElement('div');l1body.className='ql1-body';
+
+    // Group by year
+    const yearMap=new Map();
+    records.forEach(r=>{
+      const y=getYear(r.quote_date);
+      if(!yearMap.has(y))yearMap.set(y,[]);
+      yearMap.get(y).push(r);
+    });
+    const multiYear=yearMap.size>1;
+    const sortedYears=[...yearMap.keys()].sort((a,b)=>b.localeCompare(a));
+
+    sortedYears.forEach(year=>{
+      const yRecs=yearMap.get(year);
+      yRecs.sort((a,b)=>(b.quote_date||'').localeCompare(a.quote_date||''));
+
+      const l2=document.createElement('div');l2.className='ql2';
+      const l2hd=document.createElement('div');l2hd.className='ql2-hd'+(multiYear?'':' open');
+      l2hd.innerHTML='<span class="arrow">›</span><span class="year-pill">'+year+'</span>'+
+        '<span style="font-size:11px;color:#6e6e73;font-weight:400">'+yRecs.length+' quote'+(yRecs.length>1?'s':'')+'</span>';
+      const l2body=document.createElement('div');l2body.className='ql2-body';
+      if(!multiYear)l2body.style.display='block';
+
+      yRecs.forEach(r=>{
+        const badge=r.brand==='VOICity'?'badge-v':'badge-p';
+        const shipping=r.shipping||0;
+        const grandTotal=(r.total||0)+shipping;
+        const month=getMonth(r.quote_date);
+        const monthLabel=month?month+'/':'';
+
+        const l3=document.createElement('div');l3.className='ql3';
+        const subtitle=[r.customer_contact,grandTotal?'NT$'+Number(grandTotal).toLocaleString():''].filter(Boolean).join(' · ');
+        l3.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
+          '<div><div class="l3pi">'+monthLabel+r.pi_number+'</div>'+
+          (subtitle?'<div class="l3sub-big">'+subtitle+'</div>':'')+
+          '</div><span class="qbadge '+badge+'">'+r.brand+'</span></div>';
+
+        const detail=document.createElement('div');detail.className='ql3-detail';
+        detail.style.display='block';
+        const custFields=[
+          r.quote_date?['日期',r.quote_date]:null,
+          r.customer_contact?['聯絡人',r.customer_contact]:null,
+          r.customer_phone?['電話',r.customer_phone]:null,
+          r.customer_email?['Email',r.customer_email]:null,
+          r.customer_taxid?['統一編號',r.customer_taxid]:null,
+          r.customer_address?['地址',r.customer_address]:null,
+        ].filter(Boolean);
+        let html='';
+        if(custFields.length){
+          html+='<div style="background:#f5f5f7;border-radius:8px;padding:10px 12px;margin-bottom:10px">'+
+            custFields.map(([l,v])=>'<div style="display:flex;gap:8px;font-size:12px;padding:3px 0"><span style="color:#6e6e73;min-width:72px;flex-shrink:0">'+l+'</span><span style="color:#1d1d1f">'+v+'</span></div>').join('')+
+          '</div>';
+        }
+        if(r.products&&r.products.length){
+          html+='<table><tr><th>Product</th><th>Qty</th><th>Price</th><th>Amount</th></tr>'+
+            r.products.map(p=>'<tr><td>'+p.name+'</td><td>'+p.qty+'</td><td>NT$'+Number(p.price).toLocaleString()+'</td><td>NT$'+Number(p.qty*p.price).toLocaleString()+'</td></tr>').join('');
+          html+='<tr><td style="color:#6e6e73">宅配運費</td><td>—</td><td>—</td><td>NT$'+Number(shipping).toLocaleString()+'</td></tr>';
+          html+='<tr style="font-weight:600"><td colspan="3" style="text-align:right">Total</td><td>NT$'+Number(grandTotal).toLocaleString()+'</td></tr></table>';
+        }
+        detail.innerHTML=html;
+        l3.appendChild(detail);
+        l2body.appendChild(l3);
+      });
+
+      if(multiYear){
+        l2hd.addEventListener('click',e=>{
+          e.stopPropagation();
+          const open=l2body.style.display==='block';
+          l2body.style.display=open?'none':'block';
+          l2hd.classList.toggle('open',!open);
+        });
+      }
+      l2.appendChild(l2hd);l2.appendChild(l2body);
+      l1body.appendChild(l2);
+    });
+
+    l1.addEventListener('click',()=>{
+      const open=l1body.style.display==='block';
+      l1body.style.display=open?'none':'block';
+      l1.classList.toggle('open',!open);
+    });
+    list.appendChild(l1);list.appendChild(l1body);
+  });
+}
+document.getElementById('qsearch').addEventListener('input',renderQ);
+document.getElementById('brand-filter').addEventListener('change',renderQ);
+
+// ── UPLOAD ────────────────────────────────────────────────
+const ua=document.getElementById('upload-area');
+const ui=document.getElementById('upload-input');
+ua.addEventListener('click',()=>ui.click());
+ua.addEventListener('dragover',e=>{e.preventDefault();ua.classList.add('drag');});
+ua.addEventListener('dragleave',()=>ua.classList.remove('drag'));
+ua.addEventListener('drop',e=>{e.preventDefault();ua.classList.remove('drag');processFiles(e.dataTransfer.files);});
+ui.addEventListener('change',e=>processFiles(e.target.files));
+
+async function processFiles(files){
+  const log=document.getElementById('upload-log');
+  log.innerHTML='<div style="color:#0071e3">Processing '+files.length+' file(s)…</div>';
+  let added=0,skipped=0,errors=0;
+  const existPIs=new Set(quotations.map(q=>q.pi_number));
+  for(const file of files){
+    try{
+      const rec=await parseXLSX(await file.arrayBuffer(),file.name);
+      if(!rec){errors++;log.innerHTML+='<div style="color:#ff3b30">⚠ '+file.name+': could not parse</div>';continue;}
+      if(existPIs.has(rec.pi_number)){skipped++;log.innerHTML+='<div style="color:#6e6e73">— '+file.name+': skipped ('+rec.pi_number+')</div>';continue;}
+      const res=await dbInsert('quotation_records',rec);
+      quotations.unshift(res[0]||rec);existPIs.add(rec.pi_number);added++;
+      log.innerHTML+='<div style="color:#1a7f3c">✓ '+file.name+': added ('+rec.pi_number+')</div>';
+    }catch(e){errors++;log.innerHTML+='<div style="color:#ff3b30">⚠ '+file.name+': '+e.message+'</div>';}
+  }
+  log.innerHTML+='<div style="margin-top:8px;font-weight:600">Done — '+added+' added, '+skipped+' skipped, '+errors+' errors</div>';
+  renderQ();
+}
+
+async function parseXLSX(ab,filename){
+  if(!window.JSZip){
+    await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+  }
+  const zip=await JSZip.loadAsync(ab);
+  const xml=await zip.file('xl/worksheets/sheet1.xml').async('text');
+  const sharedXml=zip.file('xl/sharedStrings.xml')?await zip.file('xl/sharedStrings.xml').async('text'):null;
+  const ss=[];
+  if(sharedXml){for(const m of sharedXml.matchAll(/<t[^>]*>([^<]*)<\/t>/g))ss.push(m[1]);}
+  const cells={};
+  for(const m of xml.matchAll(/<c r="([A-Z]+\d+)"[^>]*(?:t="([^"]*)")?[^>]*>(?:.*?<v>([^<]*)<\/v>)?/gs)){
+    const[,ref,type,val]=m;
+    if(type==='s'&&val)cells[ref]=ss[parseInt(val)]||'';
+    else if(val)cells[ref]=val;
+  }
+  function g(ref){return(cells[ref]||'').toString().trim();}
+  function cl(v){const labels=['客戶名稱:','客戶名稱：','聯絡人:','聯絡人：','電話:','電話：','傳真:','傳真：','E-mail:','Email:','統一編號:','統一編號：','地址:','地址：'];let s=v;for(const l of labels)if(s.startsWith(l)){s=s.slice(l.length).trim();break;}return s;}
+  const pi=cl(g('F7')).replace('PI單號:','').replace('PI單號：','').trim();
+  if(!pi||pi==='PI單號')return null;
+  const brand=filename.toLowerCase().includes('porto')||pi.startsWith('PIB')?'PORTO':'VOICity';
+  const products=[];let total=0;
+  for(let row=15;row<30;row++){
+    const model=g(`B${row}`);if(!model||['宅配運費','運費','型號'].includes(model))continue;
+    const qty=parseInt(g(`E${row}`))||0;
+    const price=parseInt(g(`F${row}`).replace(/[^0-9]/g,''))||0;
+    if(qty>0&&price>0){products.push({name:model,spec:g(`C${row}`),qty,price});total+=qty*price;}
+  }
+  if(!products.length)return null;
+  return{pi_number:pi,brand,quote_date:cl(g('F6')).replace('Date:','').trim(),customer_company:cl(g('A6')),customer_contact:cl(g('A7')),customer_phone:cl(g('A8')),customer_email:cl(g('A10')),customer_taxid:cl(g('A11')),customer_address:cl(g('A12')),payment:cl(g('F10')),delivery:cl(g('F11')),shipping:0,products,total};
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>{const n=['generate','history','upload'];el.classList.toggle('on',n[i]===t);});
+  document.querySelectorAll('.pane').forEach(el=>el.classList.remove('on'));
+  document.getElementById('pane-'+t).classList.add('on');
+}
+function showP(m){document.getElementById('panel-edit').style.display=m==='edit-c'?'block':'none';document.getElementById('panel-new-cust').style.display=m==='new-c'?'block':'none';document.getElementById('panel-new-prod').style.display=m==='new-p'?'block':'none';}
+function hideP(m){if(m==='edit-c')document.getElementById('panel-edit').style.display='none';if(m==='new-c')document.getElementById('panel-new-cust').style.display='none';if(m==='new-p')document.getElementById('panel-new-prod').style.display='none';}
+function flash(id,cb){const m=document.getElementById(id);m.style.display='block';setTimeout(()=>{m.style.display='none';if(cb)cb();},1200);}
+
+checkSession();
+
+// ── PASTE BLOCK PARSER ────────────────────────────────────
+document.getElementById('parse-btn').addEventListener('click',()=>{
+  const text=document.getElementById('n-paste').value;
+  if(!text.trim())return;
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  const result={company:'',contact:'',phone:'',fax:'',email:'',taxid:'',address:''};
+
+  const patterns=[
+    {keys:['公司名稱','公司','company name','company'],field:'company'},
+    {keys:['公司聯絡人','聯絡人','contact person','contact','聯絡窗口'],field:'contact'},
+    {keys:['聯絡電話','電話','phone','tel','mobile','手機'],field:'phone'},
+    {keys:['傳真','fax'],field:'fax'},
+    {keys:['email','e-mail','e mail','信箱','電子郵件'],field:'email'},
+    {keys:['統一編號','統編','tax id','taxid','vat','公司統編'],field:'taxid'},
+    {keys:['公司地址','地址','address','addr'],field:'address'},
+  ];
+
+  lines.forEach(line=>{
+    // Try label:value or label value patterns
+    for(const {keys,field} of patterns){
+      for(const key of keys){
+        const re=new RegExp('^'+key+'[\\s:：]+(.+)','i');
+        const m=line.match(re);
+        if(m&&!result[field]){result[field]=m[1].trim();return;}
+      }
+    }
+    // If line looks like an email (no label matched)
+    if(!result.email&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(line)){result.email=line;return;}
+    // If line looks like a phone number
+    if(!result.phone&&/^[\d\-\(\)\+\s#ext\.]{7,}$/i.test(line)){result.phone=line;return;}
+    // If line looks like a tax ID (8 digits)
+    if(!result.taxid&&/^\d{8}$/.test(line.replace(/\s/g,''))){result.taxid=line.trim();return;}
+  });
+
+  // Fill fields
+  ['company','contact','phone','fax','email','taxid','address'].forEach(f=>{
+    if(result[f])document.getElementById('n-'+f).value=result[f];
+  });
+
+  // Clear paste box and show feedback
+  document.getElementById('n-paste').style.borderColor='#34c759';
+  setTimeout(()=>document.getElementById('n-paste').style.borderColor='#d2d2d7',1500);
+});
+
+</script>
+</body>
+</html>
