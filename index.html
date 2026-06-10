@@ -261,16 +261,16 @@ button:active{transform:scale(.98)}
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div class="slabel" style="margin:0">Customer <span id="ds-ccount" style="font-size:11px;font-weight:400;color:#6e6e73"></span></div>
-      <button class="bs" id="ds-new-cust-btn">&#65291; New</button>
+      <button class="bs" id="ds-new-cust-btn">＋ New</button>
     </div>
-    <div class="sw"><input type="search" id="ds-csearch" placeholder="Search company, contact, email&#8230;"></div>
+    <div class="sw"><input type="search" id="ds-csearch" placeholder="Search company, contact, email…"></div>
     <div class="sb" id="ds-clist"></div>
     <div id="ds-no-cres" style="font-size:13px;color:#6e6e73;padding:6px 0;display:none">No match.</div>
     <div class="panel" id="ds-panel-cust" style="display:none">
       <div style="font-size:13px;font-weight:600;margin-bottom:8px" id="ds-ctitle"></div>
       <div style="font-size:12px;color:#6e6e73;line-height:1.9;margin-bottom:10px" id="ds-cinfo"></div>
-      <div style="margin-bottom:12px"><div class="fl">Override &#36865;&#36027;&#22320;&#22336; (optional)</div><input id="ds-address-override" placeholder="Leave blank to use saved address"></div>
-      <div class="fl" style="margin-bottom:6px">Past quotations &#8212; click to use PI &amp; products</div>
+      <div style="margin-bottom:12px"><div class="fl">Override &#36865;&#36027;地址 (optional)</div><input id="ds-address-override" placeholder="Leave blank to use saved address"></div>
+      <div class="fl" style="margin-bottom:6px">Past quotations — click to use PI &amp; products</div>
       <div id="ds-past-quotes" style="max-height:200px;overflow-y:auto"></div>
     </div>
     <div class="panel" id="ds-panel-new-cust" style="display:none">
@@ -278,56 +278,56 @@ button:active{transform:scale(.98)}
       <div style="margin-bottom:10px">
         <div class="fl">Paste contact block (optional)</div>
         <textarea id="ds-paste" rows="4" style="width:100%;border:1px solid #d2d2d7;border-radius:8px;padding:8px 11px;font-size:12px;font-family:inherit;resize:vertical;outline:none;color:#1d1d1f;background:#fff"></textarea>
-        <button class="bs" id="ds-parse-btn" style="margin-top:6px">&#9889; Parse &amp; fill</button>
+        <button class="bs" id="ds-parse-btn" style="margin-top:6px">⚡ Parse &amp; fill</button>
       </div>
-      <div class="g2" style="margin-bottom:8px"><div><div class="fl">&#20844;&#21496;&#21517;&#31281; *</div><input id="ds-n-company"></div><div><div class="fl">&#32852;&#32097;&#20154;</div><input id="ds-n-contact"></div></div>
-      <div class="g2" style="margin-bottom:8px"><div><div class="fl">&#38651;&#35441;</div><input id="ds-n-phone"></div><div><div class="fl">&#20659;&#30495;</div><input id="ds-n-fax"></div></div>
-      <div class="g2" style="margin-bottom:8px"><div><div class="fl">Email</div><input id="ds-n-email"></div><div><div class="fl">&#32479;&#19968;&#32232;&#34399;</div><input id="ds-n-taxid"></div></div>
-      <div style="margin-bottom:12px"><div class="fl">&#22320;&#22336;</div><input id="ds-n-address"></div>
+      <div class="g2" style="margin-bottom:8px"><div><div class="fl">公司名稱 *</div><input id="ds-n-company"></div><div><div class="fl">聯絡人</div><input id="ds-n-contact"></div></div>
+      <div class="g2" style="margin-bottom:8px"><div><div class="fl">電話</div><input id="ds-n-phone"></div><div><div class="fl">傳真</div><input id="ds-n-fax"></div></div>
+      <div class="g2" style="margin-bottom:8px"><div><div class="fl">Email</div><input id="ds-n-email"></div><div><div class="fl">統一編號</div><input id="ds-n-taxid"></div></div>
+      <div style="margin-bottom:12px"><div class="fl">地址</div><input id="ds-n-address"></div>
       <div style="display:flex;gap:8px">
-        <button class="bp bs" id="ds-save-new-cust-btn">&#10003; Save</button>
+        <button class="bp bs" id="ds-save-new-cust-btn">✓ Save</button>
         <button class="bs" id="ds-use-new-once-btn">Use once</button>
-        <button class="bs bd" id="ds-cancel-new-cust-btn">&#10005; Cancel</button>
+        <button class="bs bd" id="ds-cancel-new-cust-btn">✕ Cancel</button>
       </div>
-      <div class="mok" id="ds-nmsg">&#10003; Saved!</div>
+      <div class="mok" id="ds-nmsg">✓ Saved!</div>
     </div>
   </div>
   <div class="card">
     <div class="slabel">Shipment details</div>
     <div class="g2" style="margin-bottom:10px">
-      <div><div class="fl">PI&#21809;&#34399;</div><input id="ds-pi" placeholder="e.g. PIA061026021C"></div>
-      <div><div class="fl">&#20986;&#36027;&#26085;&#26399;</div><input id="ds-date" placeholder="e.g. 2026/06/10"></div>
+      <div><div class="fl">PI號碼</div><input id="ds-pi" placeholder="e.g. PIA061026021C"></div>
+      <div><div class="fl">出貨日期</div><input id="ds-date" placeholder="e.g. 2026/06/10"></div>
     </div>
     <div class="g2">
-      <div><div class="fl">&#35746;&#21809;&#34399;&#30908; (optional)</div><input id="ds-order"></div>
-      <div><div class="fl">&#26989;&#21153;&#20154;&#21592;</div><input id="ds-staff" value="&#21556;&#20426;&#35611;"></div>
+      <div><div class="fl">訂單號碼&#30908; (optional)</div><input id="ds-order"></div>
+      <div><div class="fl">業務人員</div><input id="ds-staff" value="吳俊豪"></div>
     </div>
   </div>
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div class="slabel" style="margin:0">Products <span id="ds-pcount" style="font-size:11px;font-weight:400;color:#6e6e73"></span></div>
-      <button class="bs" id="ds-add-row-btn">&#65291; Add row</button>
+      <button class="bs" id="ds-add-row-btn">＋ Add row</button>
     </div>
-    <div class="sw"><input type="search" id="ds-psearch" placeholder="Search products&#8230;"></div>
+    <div class="sw"><input type="search" id="ds-psearch" placeholder="Search products…"></div>
     <div class="sb" id="ds-plist"></div>
     <div id="ds-no-pres" style="font-size:13px;color:#6e6e73;padding:6px 0;display:none">No match.</div>
     <div id="ds-pdetails"></div>
     <div class="panel" id="ds-panel-custom-row" style="display:none">
       <div style="font-size:13px;font-weight:600;margin-bottom:10px">Custom product row</div>
-      <div style="margin-bottom:8px"><div class="fl">&#29289;&#21697;&#22411;&#34399;</div><input id="ds-cr-model"></div>
-      <div style="margin-bottom:12px"><div class="fl">&#21697;&#21517;&#35215;&#26684;</div><input id="ds-cr-spec"></div>
+      <div style="margin-bottom:8px"><div class="fl">產品型號</div><input id="ds-cr-model"></div>
+      <div style="margin-bottom:12px"><div class="fl">品名規格</div><input id="ds-cr-spec"></div>
       <div style="display:flex;gap:8px">
-        <button class="bp bs" id="ds-cr-save-btn">&#65291; Add</button>
-        <button class="bs bd" id="ds-cr-cancel-btn">&#10005; Cancel</button>
+        <button class="bp bs" id="ds-cr-save-btn">＋ Add</button>
+        <button class="bs bd" id="ds-cr-cancel-btn">✕ Cancel</button>
       </div>
     </div>
   </div>
-  <button class="bp" id="ds-gen-btn" style="width:100%;padding:13px;font-size:15px;font-weight:600;border-radius:10px;margin-top:4px">&#128230; Generate &#20986;&#36027;&#21809; prompt</button>
+  <button class="bp" id="ds-gen-btn" style="width:100%;padding:13px;font-size:15px;font-weight:600;border-radius:10px;margin-top:4px">📦 Generate 出貨單 prompt</button>
   <div class="hint">Copy the prompt and paste into Claude to get the Word file.</div>
   <div id="ds-output-box" style="display:none;margin-top:14px">
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div class="slabel" style="margin:0">Prompt &#8212; paste into Claude</div>
+        <div class="slabel" style="margin:0">Prompt — paste into Claude</div>
         <button class="bs bp" id="ds-copy-btn">Copy</button>
       </div>
       <pre id="ds-output-text" style="font-size:12px;white-space:pre-wrap;word-break:break-all;background:#f5f5f7;border-radius:8px;padding:12px;color:#1d1d1f;font-family:monospace;max-height:260px;overflow-y:auto"></pre>
@@ -958,7 +958,7 @@ function renderDsPD(){
     row.innerHTML='<div style="font-size:12px;color:#6e6e73;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+p.model+'">'+p.model+'</div>'+
       '<input type="text" placeholder="品名規格" value="'+p.spec+'" data-i="'+i+'" data-f="spec" style="height:30px;font-size:12px;width:100%">'+
       '<input type="text" placeholder="數量" value="'+p.qty+'" data-i="'+i+'" data-f="qty" style="height:30px;font-size:12px;text-align:center;width:100%">'+
-      '<button class="delbtn" data-i="'+i+'">&#10005;</button>';
+      '<button class="delbtn" data-i="'+i+'">✕</button>';
     wrap.appendChild(row);
   });
 }
