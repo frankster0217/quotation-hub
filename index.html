@@ -761,8 +761,6 @@ function showP(m){document.getElementById('panel-edit').style.display=m==='edit-
 function hideP(m){if(m==='edit-c')document.getElementById('panel-edit').style.display='none';if(m==='new-c')document.getElementById('panel-new-cust').style.display='none';if(m==='new-p')document.getElementById('panel-new-prod').style.display='none';}
 function flash(id,cb){const m=document.getElementById(id);m.style.display='block';setTimeout(()=>{m.style.display='none';if(cb)cb();},1200);}
 
-checkSession();
-
 // ── Create 出貨單 from quotation ──────────────────────────
 function createDsFromQuote(e, piNumber){
   e.stopPropagation();
