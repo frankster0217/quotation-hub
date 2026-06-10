@@ -127,6 +127,7 @@ button:active{transform:scale(.98)}
   <div class="tabs">
     <button class="tab on" onclick="switchTab('generate')">Generate</button>
     <button class="tab" onclick="switchTab('history')">History</button>
+    <button class="tab" onclick="switchTab('delivery')">出貨單</button>
     <button class="tab" onclick="switchTab('upload')">Upload</button>
   </div>
 
@@ -245,6 +246,75 @@ button:active{transform:scale(.98)}
     <div class="sw"><input type="search" id="qsearch" placeholder="Search company, PI number, product…"></div>
     <div id="qlist"></div>
     <div id="no-qres" style="font-size:13px;color:#6e6e73;text-align:center;padding:16px 0;display:none">No quotations found.</div>
+  </div>
+  </div>
+
+
+  <!-- 出貨單 -->
+  <div class="pane" id="pane-delivery">
+  <div class="card">
+    <div class="slabel">Brand</div>
+    <div style="display:flex;gap:8px" id="ds-brand-row">
+      <button class="bb on" data-brand="VOICity"><span class="bn">VOICity</span><span class="bsub">豐音城</span></button>
+      <button class="bb" data-brand="PORTO"><span class="bn">PORTO</span><span class="bsub">3C科技</span></button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="slabel" style="margin:0">Customer <span id="ds-ccount" style="font-size:11px;font-weight:400;color:#6e6e73"></span></div>
+    </div>
+    <div class="sw"><input type="search" id="ds-csearch" placeholder="Search company, contact…"></div>
+    <div class="sb" id="ds-clist"></div>
+    <div id="ds-no-cres" style="font-size:13px;color:#6e6e73;padding:6px 0;display:none">No match.</div>
+    <div class="panel" id="ds-panel-cust" style="display:none">
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px" id="ds-ctitle">Selected customer</div>
+      <div style="font-size:12px;color:#6e6e73;line-height:1.8" id="ds-cinfo"></div>
+      <div style="margin-top:10px">
+        <div class="fl">Override 送貨地址 (optional)</div>
+        <input id="ds-address-override" placeholder="Leave blank to use saved address">
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="slabel">Shipment details</div>
+    <div class="g2" style="margin-bottom:10px">
+      <div><div class="fl">PI單號</div><input id="ds-pi" placeholder="e.g. PIA061026021C"></div>
+      <div><div class="fl">出貨日期</div><input id="ds-date" placeholder="e.g. 2026/06/10"></div>
+    </div>
+    <div class="g2">
+      <div><div class="fl">訂單號碼 (optional)</div><input id="ds-order"></div>
+      <div><div class="fl">業務人員</div><input id="ds-staff" value="吳俊豪"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="slabel" style="margin:0">Products <span id="ds-pcount" style="font-size:11px;font-weight:400;color:#6e6e73"></span></div>
+      <button class="bs" id="ds-new-prod-btn">＋ Add row</button>
+    </div>
+    <div class="sw"><input type="search" id="ds-psearch" placeholder="Search products…"></div>
+    <div class="sb" id="ds-plist"></div>
+    <div id="ds-no-pres" style="font-size:13px;color:#6e6e73;padding:6px 0;display:none">No match.</div>
+    <div id="ds-pdetails"></div>
+    <div class="panel" id="ds-panel-new-prod" style="display:none">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Add custom product row</div>
+      <div style="margin-bottom:8px"><div class="fl">產品型號</div><input id="ds-np-model" placeholder="e.g. Jabra Biz 2300 單耳"></div>
+      <div style="margin-bottom:12px"><div class="fl">品名規格</div><input id="ds-np-spec" placeholder="e.g. 耳機麥克風"></div>
+      <div style="display:flex;gap:8px">
+        <button class="bp bs" id="ds-save-prod-btn">＋ Add to list</button>
+        <button class="bs bd" id="ds-cancel-prod-btn">✕ Cancel</button>
+      </div>
+    </div>
+  </div>
+  <button class="bp" id="ds-gen-btn" style="width:100%;padding:13px;font-size:15px;font-weight:600;border-radius:10px;margin-top:4px">📦 Generate 出貨單 prompt</button>
+  <div class="hint">Copy the prompt and paste into Claude to get the Word file.</div>
+  <div id="ds-output-box" style="display:none;margin-top:14px">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="slabel" style="margin:0">Prompt — paste into Claude</div>
+        <button class="bs bp" id="ds-copy-btn">Copy</button>
+      </div>
+      <pre id="ds-output-text" style="font-size:12px;white-space:pre-wrap;word-break:break-all;background:#f5f5f7;border-radius:8px;padding:12px;color:#1d1d1f;font-family:monospace;max-height:260px;overflow-y:auto"></pre>
+    </div>
   </div>
   </div>
 
@@ -564,7 +634,8 @@ function renderQ(){
         l3.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
           '<div><div class="l3pi">'+monthLabel+r.pi_number+'</div>'+
           (subtitle?'<div class="l3sub-big">'+subtitle+'</div>':'')+
-          '</div><span class="qbadge '+badge+'">'+r.brand+'</span></div>';
+          '</div><div style="display:flex;align-items:center;gap:6px"><span class="qbadge '+badge+'">'+r.brand+'</span>'+
+          '<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="createDsFromQuote(event,''+r.pi_number+'')">📦 出貨單</button></div></div>';
 
         const detail=document.createElement('div');detail.className='ql3-detail';
         detail.style.display='block';
@@ -677,7 +748,8 @@ async function parseXLSX(ab,filename){
 
 // ── UTILS ─────────────────────────────────────────────────
 function switchTab(t){
-  document.querySelectorAll('.tab').forEach((el,i)=>{const n=['generate','history','upload'];el.classList.toggle('on',n[i]===t);});
+  document.querySelectorAll('.tab').forEach((el,i)=>{const n=['generate','history','delivery','upload'];el.classList.toggle('on',n[i]===t);});
+  if(t==='delivery'){renderDsC();renderDsP();}
   document.querySelectorAll('.pane').forEach(el=>el.classList.remove('on'));
   document.getElementById('pane-'+t).classList.add('on');
 }
@@ -686,6 +758,174 @@ function hideP(m){if(m==='edit-c')document.getElementById('panel-edit').style.di
 function flash(id,cb){const m=document.getElementById(id);m.style.display='block';setTimeout(()=>{m.style.display='none';if(cb)cb();},1200);}
 
 checkSession();
+
+// ── Create 出貨單 from quotation ──────────────────────────
+function createDsFromQuote(e, piNumber){
+  e.stopPropagation();
+  const r=quotations.find(q=>q.pi_number===piNumber);
+  if(!r){alert('Quotation not found.');return;}
+
+  // Switch to 出貨單 tab
+  switchTab('delivery');
+
+  // Set brand
+  dsBrand=r.brand;
+  document.querySelectorAll('#ds-brand-row .bb').forEach(b=>b.classList.toggle('on',b.dataset.brand===dsBrand));
+
+  // Fill PI number and date
+  document.getElementById('ds-pi').value=r.pi_number||'';
+  document.getElementById('ds-date').value=new Date().toISOString().slice(0,10).replace(/-/g,'/');
+
+  // Find and select customer
+  const cidx=customers.findIndex(c=>c.company===r.customer_company);
+  if(cidx>=0){
+    dsSelIdx=cidx;
+    const c=customers[cidx];
+    document.getElementById('ds-ctitle').textContent=c.company;
+    document.getElementById('ds-cinfo').innerHTML=[
+      c.contact?'<b>聯絡人:</b> '+c.contact:'',
+      c.phone?'<b>電話:</b> '+c.phone:'',
+      c.fax?'<b>傳真:</b> '+c.fax:'',
+      c.taxid?'<b>統編:</b> '+c.taxid:'',
+      c.address?'<b>地址:</b> '+c.address:'',
+    ].filter(Boolean).join('<br>');
+    document.getElementById('ds-panel-cust').style.display='block';
+  }
+
+  // Pre-fill products from quotation
+  dsSelProds=(r.products||[]).map(p=>({
+    model:p.name,
+    spec:p.spec||'',
+    qty:String(p.qty||'')
+  }));
+
+  renderDsC();
+  renderDsP();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+
+// ── 出貨單 ────────────────────────────────────────────────
+let dsBrand='VOICity', dsSelIdx=-1, dsSelProds=[];
+
+document.getElementById('ds-brand-row').addEventListener('click',function(e){
+  const bb=e.target.closest('.bb');if(!bb)return;
+  dsBrand=bb.dataset.brand;
+  document.querySelectorAll('#ds-brand-row .bb').forEach(b=>b.classList.toggle('on',b.dataset.brand===dsBrand));
+});
+
+function renderDsC(){
+  const q=(document.getElementById('ds-csearch').value||'').trim().toLowerCase();
+  const list=document.getElementById('ds-clist');list.innerHTML='';
+  document.getElementById('ds-ccount').textContent='('+customers.length+')';
+  const fil=customers.map((c,i)=>({c,i})).filter(({c})=>!q||(c.company+' '+c.contact+' '+c.phone).toLowerCase().includes(q));
+  document.getElementById('ds-no-cres').style.display=fil.length?'none':'block';
+  fil.slice(0,100).forEach(({c,i})=>{
+    const d=document.createElement('div');d.className='ci'+(dsSelIdx===i?' on':'');d.dataset.idx=i;
+    d.innerHTML='<div style="flex:1;min-width:0"><div class="cn">'+hl(c.company,q)+'</div><div class="csb">'+[c.contact,c.phone].filter(Boolean).join(' · ')+'</div></div><span class="tag">'+(c.taxid||'—')+'</span>';
+    list.appendChild(d);
+  });
+}
+document.getElementById('ds-csearch').addEventListener('input',renderDsC);
+document.getElementById('ds-clist').addEventListener('click',function(e){
+  const ci=e.target.closest('.ci');if(!ci)return;
+  const i=parseInt(ci.dataset.idx);dsSelIdx=i;
+  const c=customers[i];
+  document.getElementById('ds-ctitle').textContent=c.company;
+  document.getElementById('ds-cinfo').innerHTML=[
+    c.contact?'<b>聯絡人:</b> '+c.contact:'',
+    c.phone?'<b>電話:</b> '+c.phone:'',
+    c.fax?'<b>傳真:</b> '+c.fax:'',
+    c.taxid?'<b>統編:</b> '+c.taxid:'',
+    c.address?'<b>地址:</b> '+c.address:'',
+  ].filter(Boolean).join('<br>');
+  document.getElementById('ds-panel-cust').style.display='block';
+  renderDsC();
+});
+
+function renderDsP(){
+  const q=(document.getElementById('ds-psearch').value||'').trim().toLowerCase();
+  const list=document.getElementById('ds-plist');list.innerHTML='';
+  const fil=allProds.filter(p=>!q||p.name.toLowerCase().includes(q)||(p.spec||'').toLowerCase().includes(q));
+  document.getElementById('ds-no-pres').style.display=fil.length?'none':'block';
+  document.getElementById('ds-pcount').textContent='('+allProds.length+')';
+  fil.slice(0,100).forEach(p=>{
+    const on=!!dsSelProds.find(s=>s.model===p.name);
+    const d=document.createElement('div');d.className='pi'+(on?' on':'');d.dataset.pname=p.name;
+    d.innerHTML='<div style="flex:1;min-width:0"><div class="pn">'+hl(p.name,q)+'</div><div class="psb">'+(p.spec||'')+'</div></div>';
+    list.appendChild(d);
+  });
+  if(fil.length>100){const m=document.createElement('div');m.style.cssText='font-size:12px;color:#6e6e73;padding:8px 12px;text-align:center';m.textContent='Showing 100 of '+fil.length+' — type to narrow';list.appendChild(m);}
+  renderDsPD();
+}
+document.getElementById('ds-psearch').addEventListener('input',renderDsP);
+document.getElementById('ds-plist').addEventListener('click',function(e){
+  const pi=e.target.closest('.pi');if(!pi)return;
+  const p=allProds.find(x=>x.name===pi.dataset.pname);if(!p)return;
+  const idx=dsSelProds.findIndex(s=>s.model===p.name);
+  if(idx>=0)dsSelProds.splice(idx,1);
+  else dsSelProds.push({model:p.name,spec:p.spec||'',qty:''});
+  renderDsP();
+});
+
+function renderDsPD(){
+  const wrap=document.getElementById('ds-pdetails');
+  if(!dsSelProds.length){wrap.innerHTML='';return;}
+  wrap.innerHTML='<div class="fl" style="margin:12px 0 6px">Selected — enter qty and unit:</div>';
+  dsSelProds.forEach((p,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:grid;grid-template-columns:1fr 1fr 60px 26px;gap:6px;align-items:center;padding:8px 10px;background:#f5f5f7;border-radius:8px;margin-top:6px';
+    row.innerHTML='<div style="font-size:12px;color:#6e6e73;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+p.model+'">'+p.model+'</div>'+
+      '<input type="text" placeholder="品名規格" value="'+p.spec+'" data-i="'+i+'" data-f="spec" style="height:30px;font-size:12px;width:100%">'+
+      '<input type="text" placeholder="數量" value="'+p.qty+'" data-i="'+i+'" data-f="qty" style="height:30px;font-size:12px;text-align:center;width:100%">'+
+      '<button class="delbtn" data-i="'+i+'" title="Remove">✕</button>';
+    wrap.appendChild(row);
+  });
+}
+document.getElementById('ds-pdetails').addEventListener('change',function(e){
+  const el=e.target;if(!el.dataset.i)return;
+  dsSelProds[parseInt(el.dataset.i)][el.dataset.f]=el.value;
+});
+document.getElementById('ds-pdetails').addEventListener('click',function(e){
+  const btn=e.target.closest('.delbtn');if(!btn)return;
+  dsSelProds.splice(parseInt(btn.dataset.i),1);renderDsP();
+});
+
+document.getElementById('ds-new-prod-btn').addEventListener('click',()=>{
+  document.getElementById('ds-panel-new-prod').style.display='block';
+});
+document.getElementById('ds-cancel-prod-btn').addEventListener('click',()=>{
+  document.getElementById('ds-panel-new-prod').style.display='none';
+});
+document.getElementById('ds-save-prod-btn').addEventListener('click',()=>{
+  const model=document.getElementById('ds-np-model').value.trim();
+  const spec=document.getElementById('ds-np-spec').value.trim();
+  if(!model)return;
+  dsSelProds.push({model,spec,qty:''});
+  document.getElementById('ds-np-model').value='';
+  document.getElementById('ds-np-spec').value='';
+  document.getElementById('ds-panel-new-prod').style.display='none';
+  renderDsP();
+});
+
+document.getElementById('ds-gen-btn').addEventListener('click',()=>{
+  if(dsSelIdx<0){alert('Please select a customer first.');return;}
+  if(!dsSelProds.length){alert('Please select at least one product.');return;}
+  if(dsSelProds.some(p=>!p.qty)){alert('Please fill in qty for all products.');return;}
+  const c=customers[dsSelIdx];
+  const addr=document.getElementById('ds-address-override').value.trim()||c.address||'';
+  const lines=dsSelProds.map((p,i)=>(i+1)+'. '+p.model+' / '+p.spec+' / '+p.qty).join('\n');
+  const prompt='Generate 出貨單:\nBrand: '+dsBrand+'\nPI單號: '+document.getElementById('ds-pi').value+'\n出貨日期: '+document.getElementById('ds-date').value+'\n訂單號碼: '+document.getElementById('ds-order').value+'\n業務人員: '+document.getElementById('ds-staff').value+'\n\n客戶名稱: '+c.company+'\n統一編號: '+(c.taxid||'')+'\n連絡人: '+(c.contact||'')+'\n聯絡電話: '+(c.phone||'')+'\n傳真: '+(c.fax||'')+'\n送貨地址: '+addr+'\n\nProducts:\n'+lines;
+  document.getElementById('ds-output-text').textContent=prompt;
+  document.getElementById('ds-output-box').style.display='block';
+  document.getElementById('ds-output-box').scrollIntoView({behavior:'smooth',block:'start'});
+});
+document.getElementById('ds-copy-btn').addEventListener('click',()=>{
+  navigator.clipboard.writeText(document.getElementById('ds-output-text').textContent).then(()=>{
+    const btn=document.getElementById('ds-copy-btn');btn.textContent='✓ Copied!';setTimeout(()=>btn.textContent='Copy',2000);
+  });
+});
+
 
 // ── PASTE BLOCK PARSER ────────────────────────────────────
 document.getElementById('parse-btn').addEventListener('click',()=>{
