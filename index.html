@@ -100,6 +100,7 @@ button:active{transform:scale(.98)}
 .upload-area p{font-size:13px;color:#6e6e73;margin-top:8px}
 .status{font-size:12px;color:#6e6e73;padding:12px;text-align:center}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -336,11 +337,14 @@ button:active{transform:scale(.98)}
 </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SB_URL='https://kyhwsxdtrgmrkwjpftjl.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5aHdzeGR0cmdtcmt3anBmdGpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzYwNTMsImV4cCI6MjA5NjE1MjA1M30.FpZevI14015RdYwoKr1DuHiMX8q7GBYpvNsReRw3FtQ';
-const sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+let sb;
+window.addEventListener('load',()=>{
+  sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+  checkSession();
+});
 
 // ── AUTH ──────────────────────────────────────────────────
 async function checkSession(){
