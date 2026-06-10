@@ -317,8 +317,7 @@ button:active{transform:scale(.98)}
   </div>
   </div>
 
-  <!-- UPLOAD -->
-  <!-- UPLOAD -->
+    <!-- UPLOAD -->
   <div class="pane" id="pane-upload">
   <div class="card">
     <div class="slabel">Upload past quotations</div>
@@ -748,14 +747,9 @@ async function parseXLSX(ab,filename){
 // ── UTILS ─────────────────────────────────────────────────
 function switchTab(t){
   document.querySelectorAll('.tab').forEach((el,i)=>{const n=['generate','history','delivery','upload'];el.classList.toggle('on',n[i]===t);});
-  document.getElementById('pane-generate').classList.toggle('on',t==='generate');
-  document.getElementById('pane-history').classList.toggle('on',t==='history');
-  document.getElementById('pane-delivery').classList.toggle('on',t==='delivery');
-  document.getElementById('pane-upload').classList.toggle('on',t==='upload');
-  if(t==='delivery'){renderDsC();renderDsP();}
-});
   document.querySelectorAll('.pane').forEach(el=>el.classList.remove('on'));
   document.getElementById('pane-'+t).classList.add('on');
+  if(t==='delivery'&&typeof renderDsC==='function'){renderDsC();renderDsP();}
 }
 function showP(m){document.getElementById('panel-edit').style.display=m==='edit-c'?'block':'none';document.getElementById('panel-new-cust').style.display=m==='new-c'?'block':'none';document.getElementById('panel-new-prod').style.display=m==='new-p'?'block':'none';}
 function hideP(m){if(m==='edit-c')document.getElementById('panel-edit').style.display='none';if(m==='new-c')document.getElementById('panel-new-cust').style.display='none';if(m==='new-p')document.getElementById('panel-new-prod').style.display='none';}
