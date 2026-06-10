@@ -127,6 +127,7 @@ button:active{transform:scale(.98)}
   <div class="tabs">
     <button class="tab on" onclick="switchTab('generate')">Generate</button>
     <button class="tab" onclick="switchTab('history')">History</button>
+    <button class="tab" onclick="switchTab('delivery')">出貨單</button>
     <button class="tab" onclick="switchTab('upload')">Upload</button>
   </div>
 
@@ -248,6 +249,75 @@ button:active{transform:scale(.98)}
   </div>
   </div>
 
+  <!-- 出貨單 -->
+  <div class="pane" id="pane-delivery">
+  <div class="card">
+    <div class="slabel">Brand</div>
+    <div style="display:flex;gap:8px" id="ds-brand-row">
+      <button class="bb on" data-brand="VOICity"><span class="bn">VOICity</span><span class="bsub">豐音城</span></button>
+      <button class="bb" data-brand="PORTO"><span class="bn">PORTO</span><span class="bsub">3C科技</span></button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="slabel" style="margin:0">Customer <span id="ds-ccount" style="font-size:11px;font-weight:400;color:#6e6e73"></span></div>
+    </div>
+    <div class="sw"><input type="search" id="ds-csearch" placeholder="Search company, contact…"></div>
+    <div class="sb" id="ds-clist"></div>
+    <div id="ds-no-cres" style="font-size:13px;color:#6e6e73;padding:6px 0;display:none">No match.</div>
+    <div class="panel" id="ds-panel-cust" style="display:none">
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px" id="ds-ctitle">Selected customer</div>
+      <div style="font-size:12px;color:#6e6e73;line-height:1.8" id="ds-cinfo"></div>
+      <div style="margin-top:10px">
+        <div class="fl">Override 送貨地址 (optional)</div>
+        <input id="ds-address-override" placeholder="Leave blank to use saved address">
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="slabel">Shipment details</div>
+    <div class="g2" style="margin-bottom:10px">
+      <div><div class="fl">PI單號</div><input id="ds-pi" placeholder="e.g. PIA061026021C"></div>
+      <div><div class="fl">出貨日期</div><input id="ds-date" placeholder="e.g. 2026/06/10"></div>
+    </div>
+    <div class="g2">
+      <div><div class="fl">訂單號碼 (optional)</div><input id="ds-order"></div>
+      <div><div class="fl">業務人員</div><input id="ds-staff" value="吳俊豪"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="slabel" style="margin:0">Products <span id="ds-pcount" style="font-size:11px;font-weight:400;color:#6e6e73"></span></div>
+      <button class="bs" id="ds-new-prod-btn">＋ Add row</button>
+    </div>
+    <div class="sw"><input type="search" id="ds-psearch" placeholder="Search products…"></div>
+    <div class="sb" id="ds-plist"></div>
+    <div id="ds-no-pres" style="font-size:13px;color:#6e6e73;padding:6px 0;display:none">No match.</div>
+    <div id="ds-pdetails"></div>
+    <div class="panel" id="ds-panel-new-prod" style="display:none">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Add custom product row</div>
+      <div style="margin-bottom:8px"><div class="fl">產品型號</div><input id="ds-np-model" placeholder="e.g. Jabra Biz 2300 單耳"></div>
+      <div style="margin-bottom:12px"><div class="fl">品名規格</div><input id="ds-np-spec" placeholder="e.g. 耳機麥克風"></div>
+      <div style="display:flex;gap:8px">
+        <button class="bp bs" id="ds-save-prod-btn">＋ Add to list</button>
+        <button class="bs bd" id="ds-cancel-prod-btn">✕ Cancel</button>
+      </div>
+    </div>
+  </div>
+  <button class="bp" id="ds-gen-btn" style="width:100%;padding:13px;font-size:15px;font-weight:600;border-radius:10px;margin-top:4px">📦 Generate 出貨單 prompt</button>
+  <div class="hint">Copy the prompt and paste into Claude to get the Word file.</div>
+  <div id="ds-output-box" style="display:none;margin-top:14px">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="slabel" style="margin:0">Prompt — paste into Claude</div>
+        <button class="bs bp" id="ds-copy-btn">Copy</button>
+      </div>
+      <pre id="ds-output-text" style="font-size:12px;white-space:pre-wrap;word-break:break-all;background:#f5f5f7;border-radius:8px;padding:12px;color:#1d1d1f;font-family:monospace;max-height:260px;overflow-y:auto"></pre>
+    </div>
+  </div>
+  </div>
+
+  <!-- UPLOAD -->
   <!-- UPLOAD -->
   <div class="pane" id="pane-upload">
   <div class="card">
@@ -677,7 +747,13 @@ async function parseXLSX(ab,filename){
 
 // ── UTILS ─────────────────────────────────────────────────
 function switchTab(t){
-  document.querySelectorAll('.tab').forEach((el,i)=>{const n=['generate','history','upload'];el.classList.toggle('on',n[i]===t);});
+  document.querySelectorAll('.tab').forEach((el,i)=>{const n=['generate','history','delivery','upload'];el.classList.toggle('on',n[i]===t);});
+  document.getElementById('pane-generate').classList.toggle('on',t==='generate');
+  document.getElementById('pane-history').classList.toggle('on',t==='history');
+  document.getElementById('pane-delivery').classList.toggle('on',t==='delivery');
+  document.getElementById('pane-upload').classList.toggle('on',t==='upload');
+  if(t==='delivery'){renderDsC();renderDsP();}
+});
   document.querySelectorAll('.pane').forEach(el=>el.classList.remove('on'));
   document.getElementById('pane-'+t).classList.add('on');
 }
