@@ -99,6 +99,40 @@ button:active{transform:scale(.98)}
 .upload-area:hover,.upload-area.drag{border-color:#0071e3;background:#f0f7ff}
 .upload-area p{font-size:13px;color:#6e6e73;margin-top:8px}
 .status{font-size:12px;color:#6e6e73;padding:12px;text-align:center}
+/* AR TRACKER */
+.ar-stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.ar-stat-box{background:#fff;border-radius:10px;padding:12px 10px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.ar-stat-box .asv{font-size:18px;font-weight:700;color:#1d1d1f}
+.ar-stat-box .asl{font-size:10px;color:#6e6e73;margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+.ar-stat-box.red .asv{color:#ff3b30}
+.ar-stat-box.yellow .asv{color:#c07800}
+.ar-item{border:1px solid #e5e5ea;border-radius:10px;background:#fff;padding:12px 14px;margin-bottom:8px;transition:all .15s}
+.ar-item:hover{border-color:#c7c7cc;background:#fafafa}
+.ar-item.paid{opacity:.5}
+.ar-item.overdue{border-color:#ff3b30;border-left:4px solid #ff3b30}
+.ar-item.due-soon{border-color:#f0c000;border-left:4px solid #f0c000}
+.ar-item .ar-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ar-item .ar-co{font-size:13px;font-weight:600;color:#1d1d1f}
+.ar-item .ar-amt{font-size:14px;font-weight:700;color:#1d1d1f;white-space:nowrap}
+.ar-item .ar-sub{font-size:11px;color:#6e6e73;margin-top:3px}
+.ar-item .ar-mid{margin-top:8px;font-size:12px;color:#6e6e73;line-height:1.7}
+.ar-item .ar-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.ar-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap}
+.ar-badge.pending{background:#fff3cd;color:#856404}
+.ar-badge.overdue{background:#fff0ef;color:#c0392b}
+.ar-badge.due-soon{background:#fff8e1;color:#c07800}
+.ar-badge.paid{background:#e8f9ee;color:#1a7f3c}
+.ar-badge.cancelled{background:#f5f5f7;color:#6e6e73}
+.ar-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.ar-prod-tag{display:inline-flex;align-items:center;gap:4px;background:#f0f7ff;border:1px solid #c3dafe;color:#1d4ed8;border-radius:6px;padding:3px 8px;font-size:12px;margin:2px}
+.ar-prod-tag button{border:none;background:none;color:#6e6e73;cursor:pointer;padding:0;font-size:12px;line-height:1}
+.ar-prod-suggestions{position:absolute;z-index:50;background:#fff;border:1px solid #d2d2d7;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.12);max-height:180px;overflow-y:auto;left:0;right:0;top:100%}
+.ar-prod-suggestion-item{padding:8px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid #f0f0f0}
+.ar-prod-suggestion-item:hover{background:#f0f7ff}
+.ar-prod-suggestion-item:last-child{border-bottom:none}
+.ar-filter-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.ar-filter-btn{padding:5px 12px;border-radius:20px;font-size:12px;border:1px solid #d2d2d7;background:#fff;color:#6e6e73;cursor:pointer;font-family:inherit}
+.ar-filter-btn.on{background:#1d1d1f;color:#fff;border-color:#1d1d1f}
 </style>
 </head>
 <body>
@@ -129,6 +163,7 @@ button:active{transform:scale(.98)}
     <button class="tab" onclick="switchTab('history')">History</button>
     <button class="tab" onclick="switchTab('delivery')">出貨單</button>
     <button class="tab" onclick="switchTab('upload')">Upload</button>
+    <button class="tab" onclick="switchTab('ar')">AR</button>
   </div>
 
   <!-- GENERATE -->
@@ -350,6 +385,85 @@ button:active{transform:scale(.98)}
   </div>
   </div>
 
+  <!-- AR TRACKER -->
+  <div class="pane" id="pane-ar">
+
+    <!-- Stats row -->
+    <div class="ar-stat" id="ar-stats">
+      <div class="ar-stat-box red"><div class="asv" id="ar-s-overdue">—</div><div class="asl">逾期未收</div></div>
+      <div class="ar-stat-box yellow"><div class="asv" id="ar-s-soon">—</div><div class="asl">本月到期</div></div>
+      <div class="ar-stat-box"><div class="asv" id="ar-s-total">—</div><div class="asl">待收總額</div></div>
+    </div>
+
+    <!-- Add new AR entry -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="slabel" style="margin:0">New AR Entry</div>
+        <button class="bs" id="ar-toggle-form-btn">＋ Add</button>
+      </div>
+      <div id="ar-form" style="display:none">
+        <!-- Customer picker -->
+        <div style="margin-bottom:8px">
+          <div class="fl">公司名稱 *</div>
+          <div class="sw" style="margin-bottom:0">
+            <input type="search" id="ar-csearch" placeholder="Search customer…" autocomplete="off">
+          </div>
+          <div id="ar-csugg" style="position:relative">
+            <div id="ar-csugg-list" class="ar-prod-suggestions" style="display:none"></div>
+          </div>
+          <input type="hidden" id="ar-cid">
+          <div id="ar-cselected" style="font-size:12px;color:#0071e3;margin-top:4px;display:none"></div>
+        </div>
+        <div class="ar-form-row">
+          <div><div class="fl">聯絡人</div><input id="ar-contact" placeholder="(auto-filled)"></div>
+          <div><div class="fl">統一編號</div><input id="ar-taxid" placeholder="(auto-filled)" style="font-family:monospace"></div>
+        </div>
+        <!-- Product field with autocomplete -->
+        <div style="margin-bottom:8px;position:relative">
+          <div class="fl">品項 (可輸入自訂)</div>
+          <input type="text" id="ar-prod-input" placeholder="Search or type product…" autocomplete="off">
+          <div id="ar-prod-sugg" class="ar-prod-suggestions" style="display:none"></div>
+          <div id="ar-prod-tags" style="margin-top:6px"></div>
+        </div>
+        <div class="ar-form-row">
+          <div><div class="fl">金額 NT$ *</div><input id="ar-amount" type="number" placeholder="0"></div>
+          <div><div class="fl">開立日期 *</div><input id="ar-date" type="text" placeholder="e.g. 2026/06/25"></div>
+        </div>
+        <div class="ar-form-row">
+          <div>
+            <div class="fl">帳期</div>
+            <select id="ar-terms" style="width:100%;border:1px solid #d2d2d7;border-radius:8px;padding:8px 11px;font-size:13px;font-family:inherit;background:#fff;outline:none">
+              <option value="30">30 天</option>
+              <option value="60" selected>60 天</option>
+              <option value="90">90 天</option>
+            </select>
+          </div>
+          <div><div class="fl">備註</div><input id="ar-note" placeholder="Optional note"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="bp bs" id="ar-save-btn">✓ Save entry</button>
+          <button class="bs bd" id="ar-cancel-btn">✕ Cancel</button>
+        </div>
+        <div class="mok" id="ar-save-msg">✓ Saved!</div>
+      </div>
+    </div>
+
+    <!-- Filter row -->
+    <div class="ar-filter-row">
+      <button class="ar-filter-btn on" data-f="pending" id="arf-pending">待收款</button>
+      <button class="ar-filter-btn" data-f="paid" id="arf-paid">已收款</button>
+      <button class="ar-filter-btn" data-f="all" id="arf-all">全部</button>
+    </div>
+
+    <!-- Search -->
+    <div class="sw" style="margin-bottom:12px"><input type="search" id="ar-search" placeholder="Search company, product, note…"></div>
+
+    <!-- List -->
+    <div id="ar-list"></div>
+    <div id="ar-empty" style="font-size:13px;color:#6e6e73;text-align:center;padding:24px 0;display:none">No AR entries found.</div>
+
+  </div>
+
 </div>
 </div>
 
@@ -418,6 +532,7 @@ async function loadAll(){
     allProds.sort((a,b)=>a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
     renderC();renderP();renderQ();
     setStatus(`✓ ${customers.length} customers · ${allProds.length} products · ${quotations.length} past quotes`);
+    loadAR();
   }catch(e){setStatus('⚠ Error: '+e.message);}
 }
 function setStatus(m){document.getElementById('sync-status').textContent=m;}
@@ -764,10 +879,11 @@ async function parseXLSX(ab,filename){
 
 // ── UTILS ─────────────────────────────────────────────────
 function switchTab(t){
-  document.querySelectorAll('.tab').forEach((el,i)=>{const n=['generate','history','delivery','upload'];el.classList.toggle('on',n[i]===t);});
+  document.querySelectorAll('.tab').forEach((el,i)=>{const n=['generate','history','delivery','upload','ar'];el.classList.toggle('on',n[i]===t);});
   document.querySelectorAll('.pane').forEach(el=>el.classList.remove('on'));
   document.getElementById('pane-'+t).classList.add('on');
   if(t==='delivery'&&typeof renderDsC==='function'){renderDsC();renderDsP();}
+  if(t==='ar')renderAR();
 }
 function showP(m){document.getElementById('panel-edit').style.display=m==='edit-c'?'block':'none';document.getElementById('panel-new-cust').style.display=m==='new-c'?'block':'none';document.getElementById('panel-new-prod').style.display=m==='new-p'?'block':'none';}
 function hideP(m){if(m==='edit-c')document.getElementById('panel-edit').style.display='none';if(m==='new-c')document.getElementById('panel-new-cust').style.display='none';if(m==='new-p')document.getElementById('panel-new-prod').style.display='none';}
@@ -987,7 +1103,265 @@ document.getElementById('ds-copy-btn').addEventListener('click',()=>{
   navigator.clipboard.writeText(document.getElementById('ds-output-text').textContent).then(()=>{const btn=document.getElementById('ds-copy-btn');btn.textContent='✓ Copied!';setTimeout(()=>btn.textContent='Copy',2000);});
 });
 
-// ── Create 出貨單 from History ────────────────────────────
+// ── AR TRACKER ────────────────────────────────────────────
+let arRecords=[];
+let arFilter='pending';
+let arSelProds=[];
+
+async function loadAR(){
+  try{
+    const{data,error}=await sb.from('ar_records').select('*').order('issue_date',{ascending:false}).limit(500);
+    if(error)throw error;
+    arRecords=data||[];
+    renderAR();
+  }catch(e){console.error('AR load error:',e);}
+}
+
+function arDueDate(issueDate,terms){
+  if(!issueDate)return null;
+  const d=new Date(issueDate.replace(/\//g,'-'));
+  if(isNaN(d))return null;
+  d.setDate(d.getDate()+parseInt(terms||60));
+  return d;
+}
+
+function arDaysLeft(dueDate){
+  if(!dueDate)return null;
+  const today=new Date();today.setHours(0,0,0,0);
+  return Math.round((dueDate-today)/(1000*60*60*24));
+}
+
+function arStatusClass(rec){
+  if(rec.status==='paid')return'paid';
+  if(rec.status==='cancelled')return'cancelled';
+  const due=arDueDate(rec.issue_date,rec.payment_terms);
+  if(!due)return'pending';
+  const days=arDaysLeft(due);
+  if(days<0)return'overdue';
+  if(days<=14)return'due-soon';
+  return'pending';
+}
+
+function arBadgeLabel(sc){
+  const map={pending:'待收款',overdue:'⚠ 逾期',['due-soon']:'即將到期',paid:'✓ 已收款',cancelled:'取消'};
+  return map[sc]||sc;
+}
+
+function renderAR(){
+  // Stats
+  const active=arRecords.filter(r=>r.status!=='paid'&&r.status!=='cancelled');
+  const overdue=active.filter(r=>{const due=arDueDate(r.issue_date,r.payment_terms);return due&&arDaysLeft(due)<0;});
+  const soon=active.filter(r=>{const due=arDueDate(r.issue_date,r.payment_terms);if(!due)return false;const d=arDaysLeft(due);return d>=0&&d<=30;});
+  const totalPending=active.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+  document.getElementById('ar-s-overdue').textContent='NT$'+overdue.reduce((s,r)=>s+(parseFloat(r.amount)||0),0).toLocaleString();
+  document.getElementById('ar-s-soon').textContent='NT$'+soon.reduce((s,r)=>s+(parseFloat(r.amount)||0),0).toLocaleString();
+  document.getElementById('ar-s-total').textContent='NT$'+totalPending.toLocaleString();
+
+  // Filter + search
+  const q=(document.getElementById('ar-search').value||'').trim().toLowerCase();
+  let fil=arRecords.filter(r=>{
+    if(arFilter==='pending') return r.status!=='paid'&&r.status!=='cancelled';
+    if(arFilter==='paid') return r.status==='paid';
+    return true;
+  });
+  if(q)fil=fil.filter(r=>(r.company_name+' '+(r.products||'')+(r.note||'')).toLowerCase().includes(q));
+
+  const list=document.getElementById('ar-list');list.innerHTML='';
+  document.getElementById('ar-empty').style.display=fil.length?'none':'block';
+
+  fil.forEach(rec=>{
+    const sc=arStatusClass(rec);
+    const due=arDueDate(rec.issue_date,rec.payment_terms);
+    const days=due?arDaysLeft(due):null;
+    let dueStr='';
+    if(due){
+      const dd=due.toLocaleDateString('zh-TW',{month:'numeric',day:'numeric'});
+      if(sc==='overdue') dueStr='逾期 '+(Math.abs(days))+'天';
+      else if(sc==='due-soon') dueStr='還有 '+days+' 天到期 ('+dd+')';
+      else dueStr='到期 '+due.toLocaleDateString('zh-TW',{month:'numeric',day:'numeric',year:'numeric'});
+    }
+
+    const div=document.createElement('div');
+    div.className='ar-item '+(sc==='overdue'?'overdue':sc==='due-soon'?'due-soon':sc==='paid'?'paid':'');
+    div.innerHTML=`
+      <div class="ar-top">
+        <div style="flex:1;min-width:0">
+          <div class="ar-co">${rec.company_name||'—'}</div>
+          <div class="ar-sub">${[rec.contact_name,rec.tax_id].filter(Boolean).join(' · ')}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="ar-amt">NT$${parseFloat(rec.amount||0).toLocaleString()}</div>
+          <span class="ar-badge ${sc}">${arBadgeLabel(sc)}</span>
+        </div>
+      </div>
+      <div class="ar-mid">
+        ${rec.products?'<div>📦 '+rec.products+'</div>':''}
+        <div>📅 開立：${rec.issue_date||'—'} · 帳期：${rec.payment_terms||60}天${dueStr?' · '+dueStr:''}</div>
+        ${rec.note?'<div>📝 '+rec.note+'</div>':''}
+        ${rec.paid_date?'<div>✓ 收款日：'+rec.paid_date+'</div>':''}
+      </div>
+      <div class="ar-actions">
+        ${rec.status!=='paid'&&rec.status!=='cancelled'?`<button class="bs bp" onclick="arMarkPaid('${rec.id}')">✓ 標記收款</button>`:''}
+        ${rec.status!=='cancelled'&&rec.status!=='paid'?`<button class="bs" onclick="arMarkCancelled('${rec.id}')">取消</button>`:''}
+        <button class="bs bd" onclick="arDelete('${rec.id}')">🗑</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+async function arMarkPaid(id){
+  const today=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'/');
+  const{error}=await sb.from('ar_records').update({status:'paid',paid_date:today}).eq('id',id);
+  if(error){alert('Error: '+error.message);return;}
+  const r=arRecords.find(x=>x.id===id);if(r){r.status='paid';r.paid_date=today;}
+  renderAR();
+}
+
+async function arMarkCancelled(id){
+  if(!confirm('標記為取消？'))return;
+  const{error}=await sb.from('ar_records').update({status:'cancelled'}).eq('id',id);
+  if(error){alert('Error: '+error.message);return;}
+  const r=arRecords.find(x=>x.id===id);if(r)r.status='cancelled';
+  renderAR();
+}
+
+async function arDelete(id){
+  if(!confirm('確定刪除這筆記錄？'))return;
+  const{error}=await sb.from('ar_records').delete().eq('id',id);
+  if(error){alert('Error: '+error.message);return;}
+  arRecords=arRecords.filter(x=>x.id!==id);
+  renderAR();
+}
+
+// ── AR FORM ───────────────────────────────────────────────
+document.getElementById('ar-toggle-form-btn').addEventListener('click',()=>{
+  const f=document.getElementById('ar-form');
+  const showing=f.style.display!=='none';
+  f.style.display=showing?'none':'block';
+  document.getElementById('ar-toggle-form-btn').textContent=showing?'＋ Add':'－ Close';
+  if(!showing){
+    // default date today
+    const td=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'});
+    document.getElementById('ar-date').value=td;
+  }
+});
+document.getElementById('ar-cancel-btn').addEventListener('click',()=>{
+  document.getElementById('ar-form').style.display='none';
+  document.getElementById('ar-toggle-form-btn').textContent='＋ Add';
+});
+
+// Customer autocomplete in AR form
+document.getElementById('ar-csearch').addEventListener('input',function(){
+  const q=this.value.trim().toLowerCase();
+  const sugg=document.getElementById('ar-csugg-list');
+  if(!q){sugg.style.display='none';return;}
+  const hits=customers.filter(c=>(c.company+' '+(c.contact||'')).toLowerCase().includes(q)).slice(0,8);
+  if(!hits.length){sugg.style.display='none';return;}
+  sugg.innerHTML='';
+  hits.forEach(c=>{
+    const d=document.createElement('div');d.className='ar-prod-suggestion-item';
+    d.innerHTML='<b>'+c.company+'</b><span style="font-size:11px;color:#6e6e73;margin-left:6px">'+(c.contact||'')+'</span>';
+    d.addEventListener('click',()=>{
+      document.getElementById('ar-csearch').value=c.company;
+      document.getElementById('ar-cid').value=c.id||'';
+      document.getElementById('ar-contact').value=c.contact||'';
+      document.getElementById('ar-taxid').value=c.taxid||'';
+      document.getElementById('ar-cselected').textContent='✓ '+c.company;
+      document.getElementById('ar-cselected').style.display='block';
+      sugg.style.display='none';
+    });
+    sugg.appendChild(d);
+  });
+  sugg.style.display='block';
+});
+document.addEventListener('click',e=>{if(!e.target.closest('#ar-csugg')&&!e.target.closest('#ar-csearch'))document.getElementById('ar-csugg-list').style.display='none';});
+
+// Product autocomplete in AR form
+document.getElementById('ar-prod-input').addEventListener('input',function(){
+  const q=this.value.trim().toLowerCase();
+  const sugg=document.getElementById('ar-prod-sugg');
+  if(!q){sugg.style.display='none';return;}
+  const hits=allProds.filter(p=>p.name.toLowerCase().includes(q)||(p.spec||'').toLowerCase().includes(q)).slice(0,8);
+  sugg.innerHTML='';
+  if(!hits.length&&q.length>1){
+    // show "add custom" option
+    const d=document.createElement('div');d.className='ar-prod-suggestion-item';d.style.color='#0071e3';
+    d.textContent='＋ 新增「'+q+'」';
+    d.addEventListener('click',()=>{arAddProdTag(q);this.value='';sugg.style.display='none';});
+    sugg.appendChild(d);sugg.style.display='block';return;
+  }
+  hits.forEach(p=>{
+    const d=document.createElement('div');d.className='ar-prod-suggestion-item';
+    d.innerHTML='<b>'+p.name+'</b>'+(p.spec?'<span style="font-size:11px;color:#6e6e73;margin-left:5px">'+p.spec+'</span>':'');
+    d.addEventListener('click',()=>{arAddProdTag(p.name);this.value='';sugg.style.display='none';});
+    sugg.appendChild(d);
+  });
+  sugg.style.display=hits.length?'block':'none';
+});
+document.getElementById('ar-prod-input').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){
+    const v=this.value.trim();if(v){arAddProdTag(v);this.value='';document.getElementById('ar-prod-sugg').style.display='none';}
+    e.preventDefault();
+  }
+});
+document.addEventListener('click',e=>{if(!e.target.closest('#ar-prod-sugg')&&!e.target.closest('#ar-prod-input'))document.getElementById('ar-prod-sugg').style.display='none';});
+
+function arAddProdTag(name){
+  if(arSelProds.includes(name))return;
+  arSelProds.push(name);renderArProdTags();
+}
+function renderArProdTags(){
+  const wrap=document.getElementById('ar-prod-tags');
+  wrap.innerHTML=arSelProds.map((p,i)=>`<span class="ar-prod-tag">${p}<button onclick="arRemoveProd(${i})" title="Remove">✕</button></span>`).join('');
+}
+function arRemoveProd(i){arSelProds.splice(i,1);renderArProdTags();}
+
+document.getElementById('ar-save-btn').addEventListener('click',async()=>{
+  const company=document.getElementById('ar-csearch').value.trim();
+  if(!company){alert('請填入公司名稱');return;}
+  const amtRaw=document.getElementById('ar-amount').value.trim();
+  if(!amtRaw){alert('請填入金額');return;}
+  const issueDate=document.getElementById('ar-date').value.trim();
+  if(!issueDate){alert('請填入開立日期');return;}
+
+  const row={
+    company_name:company,
+    contact_name:document.getElementById('ar-contact').value.trim()||null,
+    tax_id:document.getElementById('ar-taxid').value.trim()||null,
+    products:arSelProds.join(', ')||null,
+    amount:parseFloat(amtRaw),
+    issue_date:issueDate,
+    payment_terms:parseInt(document.getElementById('ar-terms').value)||60,
+    note:document.getElementById('ar-note').value.trim()||null,
+    status:'pending',
+  };
+
+  const{data,error}=await sb.from('ar_records').insert(row).select();
+  if(error){alert('儲存失敗: '+error.message);return;}
+  arRecords.unshift(data[0]||row);
+  // reset form
+  ['ar-csearch','ar-contact','ar-taxid','ar-amount','ar-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ar-cid').value='';
+  document.getElementById('ar-cselected').style.display='none';
+  document.getElementById('ar-terms').value='60';
+  arSelProds=[];renderArProdTags();
+  const td=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'});
+  document.getElementById('ar-date').value=td;
+  flash('ar-save-msg');
+  renderAR();
+});
+
+// Filter buttons
+document.querySelectorAll('.ar-filter-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    arFilter=this.dataset.f;
+    document.querySelectorAll('.ar-filter-btn').forEach(b=>b.classList.remove('on'));
+    this.classList.add('on');
+    renderAR();
+  });
+});
+document.getElementById('ar-search').addEventListener('input',renderAR);
+
 function createDsFromQuote(e,piNumber){
   e.stopPropagation();
   const r=quotations.find(q=>q.pi_number===piNumber);if(!r){alert('Quotation not found.');return;}
