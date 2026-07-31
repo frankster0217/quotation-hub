@@ -864,11 +864,19 @@ async function parseXLSX(ab,filename){
     if(!part.startsWith('r='))continue;
     const refM=part.match(/r="([A-Z]+\d+)"/);
     const tM=part.match(/\bt="([^"]+)"/);
-    const vM=part.match(/<v>([^<]*)<\/v>/);
-    if(!refM||!vM)continue;
-    const ref=refM[1],type=tM?tM[1]:'',val=vM[1];
-    if(type==='s'&&val)cells[ref]=ss[parseInt(val)]||'';
-    else if(val)cells[ref]=val;
+    if(!refM)continue;
+    const ref=refM[1],type=tM?tM[1]:'';
+    if(type==='inlineStr'){
+      // Inline string: <is><t>value</t></is>
+      const isM=part.match(/<is>.*?<t[^>]*>([^<]*)<\/t>.*?<\/is>/s);
+      if(isM)cells[ref]=isM[1].replace(/&#(\d+);/g,(_,n)=>String.fromCharCode(parseInt(n)));
+    } else {
+      const vM=part.match(/<v>([^<]*)<\/v>/);
+      if(!vM)continue;
+      const val=vM[1];
+      if(type==='s'&&val)cells[ref]=ss[parseInt(val)]||'';
+      else if(val)cells[ref]=val;
+    }
   }
   function g(ref){return(cells[ref]||'').toString().trim();}
   function cl(v){const labels=['客戶名稱:','客戶名稱：','聯絡人:','聯絡人：','電話:','電話：','傳真:','傳真：','E-mail:','Email:','統一編號:','統一編號：','地址:','地址：'];let s=v;for(const l of labels)if(s.startsWith(l)){s=s.slice(l.length).trim();break;}return s;}
