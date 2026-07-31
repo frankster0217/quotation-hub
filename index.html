@@ -385,7 +385,9 @@ button:active{transform:scale(.98)}
   </div>
   </div>
 
-  <!-- AR TRACKER -->
+
+
+<!-- AR TRACKER -->
   <div class="pane" id="pane-ar">
 
     <!-- Stats row -->
@@ -532,7 +534,6 @@ async function loadAll(){
     allProds.sort((a,b)=>a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
     renderC();renderP();renderQ();
     setStatus(`✓ ${customers.length} customers · ${allProds.length} products · ${quotations.length} past quotes`);
-    loadAR();
   }catch(e){setStatus('⚠ Error: '+e.message);}
 }
 function setStatus(m){document.getElementById('sync-status').textContent=m;}
@@ -705,7 +706,8 @@ function renderQ(){
     if(bf&&r.brand!==bf)return false;
     if(!q)return true;
     const prods=(r.products||[]).map(p=>p.name).join(' ');
-    return(r.pi_number+' '+r.customer_company+' '+r.customer_contact+' '+prods).toLowerCase().includes(q);
+    const haystack=[r.pi_number,r.customer_company,r.customer_contact,r.customer_taxid,r.customer_phone,r.customer_email,prods].filter(Boolean).join(' ').toLowerCase();
+    return haystack.includes(q);
   });
   document.getElementById('no-qres').style.display=fil.length?'none':'block';
   document.getElementById('qcount').textContent='('+quotations.length+')';
@@ -840,6 +842,8 @@ async function processFiles(files){
       const res=await dbInsert('quotation_records',rec);
       quotations.unshift(res[0]||rec);existPIs.add(rec.pi_number);added++;
       log.innerHTML+='<div style="color:#1a7f3c">✓ '+file.name+': added ('+rec.pi_number+')</div>';
+      // Also save via Edge Function for redundancy
+      try{await fetch('https://kyhwsxdtrgmrkwjpftjl.supabase.co/functions/v1/save-quotation',{method:'POST',headers:{'Content-Type':'application/json','x-secret-token':'porto_voicity_frank_2026'},body:JSON.stringify(rec)});}catch(e){}
     }catch(e){errors++;log.innerHTML+='<div style="color:#ff3b30">⚠ '+file.name+': '+e.message+'</div>';}
   }
   log.innerHTML+='<div style="margin-top:8px;font-weight:600">Done — '+added+' added, '+skipped+' skipped, '+errors+' errors</div>';
@@ -863,9 +867,14 @@ async function parseXLSX(ab,filename){
   }
   function g(ref){return(cells[ref]||'').toString().trim();}
   function cl(v){const labels=['客戶名稱:','客戶名稱：','聯絡人:','聯絡人：','電話:','電話：','傳真:','傳真：','E-mail:','Email:','統一編號:','統一編號：','地址:','地址：'];let s=v;for(const l of labels)if(s.startsWith(l)){s=s.slice(l.length).trim();break;}return s;}
-  const pi=cl(g('F7')).replace('PI單號:','').replace('PI單號：','').trim();
-  if(!pi||pi==='PI單號')return null;
-  const brand=filename.toLowerCase().includes('porto')||pi.startsWith('PIB')?'PORTO':'VOICity';
+  // Try reading PI from cell F7 first
+  let pi=cl(g('F7')).replace('PI單號:','').replace('PI單號：','').replace('PI單號','').trim();
+  // If empty, scan raw XML for PI/QUA number (handles split runs)
+  if(!pi){const piMatch=xml.match(/[PQ][A-Z]{2}\d{6}\d{3}[A-Z]/);if(piMatch)pi=piMatch[0];}
+  // Also try shared strings
+  if(!pi){for(const s of ss){const m=s.match(/[PQ][A-Z]{2}\d{6}\d{3}[A-Z]/);if(m){pi=m[0];break;}}}
+  if(!pi)return null;
+  const brand=filename.toLowerCase().includes('porto')?'PORTO':filename.toLowerCase().includes('voicity')?'VOICity':pi.startsWith('PIB')?'PORTO':'VOICity';
   const products=[];let total=0;
   for(let row=15;row<30;row++){
     const model=g(`B${row}`);if(!model||['宅配運費','運費','型號'].includes(model))continue;
@@ -883,7 +892,7 @@ function switchTab(t){
   document.querySelectorAll('.pane').forEach(el=>el.classList.remove('on'));
   document.getElementById('pane-'+t).classList.add('on');
   if(t==='delivery'&&typeof renderDsC==='function'){renderDsC();renderDsP();}
-  if(t==='ar')renderAR();
+  if(t==='ar'&&typeof loadAR==='function'){loadAR();}
 }
 function showP(m){document.getElementById('panel-edit').style.display=m==='edit-c'?'block':'none';document.getElementById('panel-new-cust').style.display=m==='new-c'?'block':'none';document.getElementById('panel-new-prod').style.display=m==='new-p'?'block':'none';}
 function hideP(m){if(m==='edit-c')document.getElementById('panel-edit').style.display='none';if(m==='new-c')document.getElementById('panel-new-cust').style.display='none';if(m==='new-p')document.getElementById('panel-new-prod').style.display='none';}
@@ -1102,6 +1111,27 @@ document.getElementById('ds-gen-btn').addEventListener('click',()=>{
 document.getElementById('ds-copy-btn').addEventListener('click',()=>{
   navigator.clipboard.writeText(document.getElementById('ds-output-text').textContent).then(()=>{const btn=document.getElementById('ds-copy-btn');btn.textContent='✓ Copied!';setTimeout(()=>btn.textContent='Copy',2000);});
 });
+
+// ── Create 出貨單 from History ────────────────────────────
+function createDsFromQuote(e,piNumber){
+  e.stopPropagation();
+  const r=quotations.find(q=>q.pi_number===piNumber);if(!r){alert('Quotation not found.');return;}
+  switchTab('delivery');
+  dsBrand=r.brand;document.querySelectorAll('#ds-brand-row .bb').forEach(b=>b.classList.toggle('on',b.dataset.brand===dsBrand));
+  document.getElementById('ds-pi').value=r.pi_number||'';
+  document.getElementById('ds-date').value=new Date().toISOString().slice(0,10).replace(/-/g,'/');
+  const cidx=customers.findIndex(c=>c.company===r.customer_company||getCore(c.company)===getCore(r.customer_company));
+  if(cidx>=0){
+    dsSelIdx=cidx;dsNewCust=null;
+    const c=customers[cidx];
+    document.getElementById('ds-ctitle').textContent=c.company;
+    document.getElementById('ds-cinfo').innerHTML=[c.contact?'<b>聯絡人:</b> '+c.contact:'',c.phone?'<b>電話:</b> '+c.phone:'',c.fax?'<b>傳真:</b> '+c.fax:'',c.taxid?'<b>統編:</b> '+c.taxid:'',c.address?'<b>地址:</b> '+c.address:''].filter(Boolean).join('<br>');
+    document.getElementById('ds-panel-cust').style.display='block';
+    document.getElementById('ds-past-quotes').innerHTML='<div style="font-size:12px;color:#6e6e73;padding:6px 0">Loaded from History.</div>';
+  }
+  dsSelProds=(r.products||[]).map(p=>({model:p.name,spec:p.spec||'',qty:String(p.qty||'')}));
+  renderDsC();renderDsP();window.scrollTo({top:0,behavior:'smooth'});
+}
 
 // ── AR TRACKER ────────────────────────────────────────────
 let arRecords=[];
@@ -1384,3 +1414,8 @@ function createDsFromQuote(e,piNumber){
 </script>
 </body>
 </html>
+
+</div>
+</div>
+
+
