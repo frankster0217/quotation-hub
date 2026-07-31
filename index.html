@@ -860,8 +860,13 @@ async function parseXLSX(ab,filename){
   const ss=[];
   if(sharedXml){for(const m of sharedXml.matchAll(/<t[^>]*>([^<]*)<\/t>/g))ss.push(m[1]);}
   const cells={};
-  for(const m of xml.matchAll(/<c r="([A-Z]+\d+)"[^>]*(?:t="([^"]*)")?[^>]*>(?:.*?<v>([^<]*)<\/v>)?/gs)){
-    const[,ref,type,val]=m;
+  for(const part of xml.split('<c ')){
+    if(!part.startsWith('r='))continue;
+    const refM=part.match(/r="([A-Z]+\d+)"/);
+    const tM=part.match(/\bt="([^"]+)"/);
+    const vM=part.match(/<v>([^<]*)<\/v>/);
+    if(!refM||!vM)continue;
+    const ref=refM[1],type=tM?tM[1]:'',val=vM[1];
     if(type==='s'&&val)cells[ref]=ss[parseInt(val)]||'';
     else if(val)cells[ref]=val;
   }
