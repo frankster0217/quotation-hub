@@ -768,7 +768,7 @@ function renderQ(){
         l3.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
           '<div><div class="l3pi">'+monthLabel+r.pi_number+'</div>'+
           (subtitle?'<div class="l3sub-big">'+subtitle+'</div>':'')+
-          '</div><div style="display:flex;align-items:center;gap:6px"><span class="qbadge '+badge+'">'+r.brand+'</span>'+'<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="createDsFromQuote(event,\''+r.pi_number+'\')">📦 出貨單</button>'+'<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="issueInvoiceFromQuote(event,\''+r.pi_number+'\')">🧾 開立發票</button></div></div>';
+          '</div><div style="display:flex;align-items:center;gap:6px"><span class="qbadge '+badge+'">'+r.brand+'</span>'+'<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="createDsFromQuote(event,\''+r.pi_number+'\')">📦 出貨單</button>'+'<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="issueInvoiceFromQuote(event,\''+r.pi_number+'\',\''+r.customer_company+'\')">🧾 開立發票</button></div></div>';
 
         const detail=document.createElement('div');detail.className='ql3-detail';
         detail.style.display='block';
@@ -833,14 +833,14 @@ async function processFiles(files){
   const log=document.getElementById('upload-log');
   log.innerHTML='<div style="color:#0071e3">Processing '+files.length+' file(s)…</div>';
   let added=0,skipped=0,errors=0;
-  const existPIs=new Set(quotations.map(q=>q.pi_number+'|'+(q.customer_company||'')));
+  const existPIs=new Set(quotations.map(q=>q.pi_number));
   for(const file of files){
     try{
       const rec=await parseXLSX(await file.arrayBuffer(),file.name);
       if(!rec){errors++;log.innerHTML+='<div style="color:#ff3b30">⚠ '+file.name+': could not parse</div>';continue;}
-      if(existPIs.has(rec.pi_number+'|'+(rec.customer_company||''))){skipped++;log.innerHTML+='<div style="color:#6e6e73">— '+file.name+': skipped ('+rec.pi_number+')</div>';continue;}
+      if(existPIs.has(rec.pi_number)){skipped++;log.innerHTML+='<div style="color:#6e6e73">— '+file.name+': skipped ('+rec.pi_number+')</div>';continue;}
       const res=await dbInsert('quotation_records',rec);
-      quotations.unshift(res[0]||rec);existPIs.add(rec.pi_number+'|'+(rec.customer_company||''));added++;
+      quotations.unshift(res[0]||rec);existPIs.add(rec.pi_number);added++;
       log.innerHTML+='<div style="color:#1a7f3c">✓ '+file.name+': added ('+rec.pi_number+')</div>';
       // Also save via Edge Function for redundancy
       try{await fetch('https://kyhwsxdtrgmrkwjpftjl.supabase.co/functions/v1/save-quotation',{method:'POST',headers:{'Content-Type':'application/json','x-secret-token':'porto_voicity_frank_2026'},body:JSON.stringify(rec)});}catch(e){}
@@ -1154,9 +1154,12 @@ const AMEGO_TOOL_URL='https://portolink-invoice-hub.netlify.app/';
 function b64EncodeUnicode(str){
   return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,(m,p)=>String.fromCharCode('0x'+p)));
 }
-function issueInvoiceFromQuote(e,piNumber){
+function issueInvoiceFromQuote(e,piNumber,company){
   e.stopPropagation();
-  const r=quotations.find(q=>q.pi_number===piNumber);if(!r){alert('Quotation not found.');return;}
+  const r=company
+    ? quotations.find(q=>q.pi_number===piNumber&&q.customer_company===company)
+    : quotations.find(q=>q.pi_number===piNumber);
+  if(!r){alert('Quotation not found.');return;}
   if(!r.customer_taxid){
     if(!confirm('此報價單沒有記錄統編，仍要開啟開立發票工具嗎？（需在 Amego 手動填寫統編）'))return;
   }
