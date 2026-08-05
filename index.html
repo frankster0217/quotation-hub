@@ -833,14 +833,14 @@ async function processFiles(files){
   const log=document.getElementById('upload-log');
   log.innerHTML='<div style="color:#0071e3">Processing '+files.length+' file(s)…</div>';
   let added=0,skipped=0,errors=0;
-  const existPIs=new Set(quotations.map(q=>q.pi_number));
+  const existPIs=new Set(quotations.map(q=>q.pi_number+'|'+(q.customer_company||'')));
   for(const file of files){
     try{
       const rec=await parseXLSX(await file.arrayBuffer(),file.name);
       if(!rec){errors++;log.innerHTML+='<div style="color:#ff3b30">⚠ '+file.name+': could not parse</div>';continue;}
-      if(existPIs.has(rec.pi_number)){skipped++;log.innerHTML+='<div style="color:#6e6e73">— '+file.name+': skipped ('+rec.pi_number+')</div>';continue;}
+      if(existPIs.has(rec.pi_number+'|'+(rec.customer_company||''))){skipped++;log.innerHTML+='<div style="color:#6e6e73">— '+file.name+': skipped ('+rec.pi_number+')</div>';continue;}
       const res=await dbInsert('quotation_records',rec);
-      quotations.unshift(res[0]||rec);existPIs.add(rec.pi_number);added++;
+      quotations.unshift(res[0]||rec);existPIs.add(rec.pi_number+'|'+(rec.customer_company||''));added++;
       log.innerHTML+='<div style="color:#1a7f3c">✓ '+file.name+': added ('+rec.pi_number+')</div>';
       // Also save via Edge Function for redundancy
       try{await fetch('https://kyhwsxdtrgmrkwjpftjl.supabase.co/functions/v1/save-quotation',{method:'POST',headers:{'Content-Type':'application/json','x-secret-token':'porto_voicity_frank_2026'},body:JSON.stringify(rec)});}catch(e){}
