@@ -1152,7 +1152,10 @@ function createDsFromQuote(e,piNumber){
 // — you still review and click 開立發票 yourself in Amego.
 const AMEGO_TOOL_URL='https://portolink-invoice-hub.netlify.app/';
 function b64EncodeUnicode(str){
-  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,(m,p)=>String.fromCharCode('0x'+p)));
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary);
 }
 function issueInvoiceFromQuote(e,piNumber){
   e.stopPropagation();
@@ -1165,7 +1168,7 @@ function issueInvoiceFromQuote(e,piNumber){
     buyerId:r.customer_taxid||'',
     buyerName:r.customer_company||'',
     email:r.customer_email||'',
-    items:(r.products||[]).map(p=>({desc:p.name,qty:p.qty,price:p.price})),
+    items:(r.products||[]).map(p=>({desc:(p.name||'').replace(/\n/g,' ').replace(/\r/g,''),qty:p.qty,price:p.price})),
     shipping:r.shipping||0,
   };
   const encoded=b64EncodeUnicode(JSON.stringify(payload));
