@@ -1159,7 +1159,7 @@ function b64EncodeUnicode(str){
 }
 function issueInvoiceFromQuote(e,piNumber,company){
   e.stopPropagation();
-  const r=quotations.find(q=>q.pi_number===piNumber);if(!r){alert('Quotation not found.');return;}
+  const r=company?quotations.find(q=>q.pi_number===piNumber&&q.customer_company===company):quotations.find(q=>q.pi_number===piNumber);if(!r){alert('Quotation not found.');return;}
   if(!r.customer_taxid){
     if(!confirm('此報價單沒有記錄統編，仍要開啟開立發票工具嗎？（需在 Amego 手動填寫統編）'))return;
   }
