@@ -768,7 +768,7 @@ function renderQ(){
         l3.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
           '<div><div class="l3pi">'+monthLabel+r.pi_number+'</div>'+
           (subtitle?'<div class="l3sub-big">'+subtitle+'</div>':'')+
-          '</div><div style="display:flex;align-items:center;gap:6px"><span class="qbadge '+badge+'">'+r.brand+'</span>'+'<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="createDsFromQuote(event,\''+r.pi_number+'\')">📦 出貨單</button>'+'<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="issueInvoiceFromQuote(event,\''+r.pi_number+'\',\\''+r.customer_company+'\\'')">🧾 開立發票</button></div></div>';
+          '</div><div style="display:flex;align-items:center;gap:6px"><span class="qbadge '+badge+'">'+r.brand+'</span>'+'<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="createDsFromQuote(event,\''+r.pi_number+'\')">📦 出貨單</button>'+'<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="issueInvoiceFromQuote(event,\''+r.pi_number+'\',\''+r.customer_company+'\')">🧾 開立發票</button></div></div>';
 
         const detail=document.createElement('div');detail.className='ql3-detail';
         detail.style.display='block';
