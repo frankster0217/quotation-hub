@@ -768,7 +768,7 @@ function renderQ(){
         l3.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
           '<div><div class="l3pi">'+monthLabel+r.pi_number+'</div>'+
           (subtitle?'<div class="l3sub-big">'+subtitle+'</div>':'')+
-          '</div><div style="display:flex;align-items:center;gap:6px"><span class="qbadge '+badge+'">'+r.brand+'</span>'+'<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="createDsFromQuote(event,\''+r.pi_number+'\')">📦 出貨單</button>'+'<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="issueInvoiceFromQuote(event,\''+r.pi_number+'\')">🧾 開立發票</button></div></div>';
+          '</div><div style="display:flex;align-items:center;gap:6px"><span class="qbadge '+badge+'">'+r.brand+'</span>'+'<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="createDsFromQuote(event,\''+r.pi_number+'\')">📦 出貨單</button>'+'<button class="bs" style="font-size:11px;padding:3px 8px;white-space:nowrap" onclick="issueInvoiceFromQuote(event,\''+r.pi_number+'\',\\''+r.customer_company+'\\'')">🧾 開立發票</button></div></div>';
 
         const detail=document.createElement('div');detail.className='ql3-detail';
         detail.style.display='block';
@@ -1128,7 +1128,7 @@ document.getElementById('ds-copy-btn').addEventListener('click',()=>{
 // ── Create 出貨單 from History ────────────────────────────
 function createDsFromQuote(e,piNumber){
   e.stopPropagation();
-  const r=quotations.find(q=>q.pi_number===piNumber);if(!r){alert('Quotation not found.');return;}
+  const r=company?quotations.find(q=>q.pi_number===piNumber&&q.customer_company===company):quotations.find(q=>q.pi_number===piNumber);if(!r){alert('Quotation not found.');return;}
   switchTab('delivery');
   dsBrand=r.brand;document.querySelectorAll('#ds-brand-row .bb').forEach(b=>b.classList.toggle('on',b.dataset.brand===dsBrand));
   document.getElementById('ds-pi').value=r.pi_number||'';
@@ -1152,12 +1152,12 @@ function createDsFromQuote(e,piNumber){
 // — you still review and click 開立發票 yourself in Amego.
 const AMEGO_TOOL_URL='https://portolink-invoice-hub.netlify.app/';
 function b64EncodeUnicode(str){
-  const bytes = new TextEncoder().encode(str);
-  let binary = '';
-  bytes.forEach(b => binary += String.fromCharCode(b));
-  return btoa(binary);
+  const bytes=new TextEncoder().encode(str);
+  let bin='';
+  bytes.forEach(b=>bin+=String.fromCharCode(b));
+  return btoa(bin);
 }
-function issueInvoiceFromQuote(e,piNumber){
+function issueInvoiceFromQuote(e,piNumber,company){
   e.stopPropagation();
   const r=quotations.find(q=>q.pi_number===piNumber);if(!r){alert('Quotation not found.');return;}
   if(!r.customer_taxid){
@@ -1168,7 +1168,7 @@ function issueInvoiceFromQuote(e,piNumber){
     buyerId:r.customer_taxid||'',
     buyerName:r.customer_company||'',
     email:r.customer_email||'',
-    items:(r.products||[]).map(p=>({desc:(p.name||'').replace(/\n/g,' ').replace(/\r/g,''),qty:p.qty,price:p.price})),
+    items:(r.products||[]).map(p=>({desc:(p.name||'').replace(/[\x00-\x1F]/g,' '),qty:p.qty,price:p.price})),
     shipping:r.shipping||0,
   };
   const encoded=b64EncodeUnicode(JSON.stringify(payload));
