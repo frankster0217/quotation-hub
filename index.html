@@ -1172,7 +1172,7 @@ function issueInvoiceFromQuote(e,piNumber,company){
     shipping:r.shipping||0,
   };
   const encoded=b64EncodeUnicode(JSON.stringify(payload));
-  window.open(AMEGO_TOOL_URL+'?data='+encoded,'_blank');
+  window.open(AMEGO_TOOL_URL+'?data='+encodeURIComponent(encoded),'_blank');
 }
 
 // ── AR TRACKER ────────────────────────────────────────────
