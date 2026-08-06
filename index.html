@@ -1165,6 +1165,7 @@ function issueInvoiceFromQuote(e,piNumber,company){
   }
   const payload={
     orderId:r.pi_number,
+    company:r.customer_company||'',
     buyerId:r.customer_taxid||'',
     buyerName:r.customer_company||'',
     email:r.customer_email||'',
