@@ -116,6 +116,10 @@ button:active{transform:scale(.98)}
 .ar-item .ar-amt{font-size:14px;font-weight:700;color:#1d1d1f;white-space:nowrap}
 .ar-item .ar-sub{font-size:11px;color:#6e6e73;margin-top:3px}
 .ar-item .ar-mid{margin-top:8px;font-size:12px;color:#6e6e73;line-height:1.7}
+.ar-product-line{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;font-size:14px}
+.ar-product-line span{flex:1;min-width:0;overflow-wrap:anywhere}
+.ar-product-qty{flex-shrink:0;color:#1d1d1f;font-size:15px;white-space:nowrap}
+.ar-product-source{font-size:12px;color:#6e6e73;margin-top:3px}
 .ar-email-tools{margin-bottom:12px;font-size:13px;line-height:1.6}
 .ar-email-tools p{color:#6e6e73;margin-top:5px}
 .ar-email-unlock{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
@@ -470,14 +474,14 @@ button:active{transform:scale(.98)}
     <div class="sw" style="margin-bottom:12px"><input type="search" id="ar-search" placeholder="Search company, product, email, note…"></div>
 
     <div class="ar-email-tools">
-      <button type="button" id="ar-email-load">顯示發票 Email</button>
+      <button type="button" id="ar-email-load">顯示數量與 Email</button>
       <form id="ar-email-unlock" class="ar-email-unlock" hidden>
         <label for="ar-email-pin">Amego 存取碼</label>
         <input type="password" id="ar-email-pin" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" autocomplete="off" required aria-describedby="ar-email-help">
-        <button type="submit" class="bp">讀取 Email</button>
+        <button type="submit" class="bp">讀取明細</button>
         <button type="button" id="ar-email-cancel">取消</button>
       </form>
-      <p id="ar-email-help">首次讀取請點「顯示發票 Email」，輸入 Amego 存取碼，再點「讀取 Email」。資料來自各張發票，不會寄信；是否已寄送請以 Amego 為準。存取碼不會儲存。</p>
+      <p id="ar-email-help">首次讀取請點「顯示數量與 Email」，輸入相同的 Amego 存取碼，再點「讀取明細」。數量及 Email 來自各張發票，不會寄信；是否已寄送請以 Amego 為準。存取碼不會儲存。</p>
       <p id="ar-email-progress" role="status" aria-live="polite"></p>
     </div>
 
@@ -491,7 +495,7 @@ button:active{transform:scale(.98)}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="ar-invoice-email.js"></script>
+<script src="ar-invoice-email.js?v=20261127-quantities"></script>
 <script>
 const SB_URL='https://kyhwsxdtrgmrkwjpftjl.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5aHdzeGR0cmdtcmt3anBmdGpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzYwNTMsImV4cCI6MjA5NjE1MjA1M30.FpZevI14015RdYwoKr1DuHiMX8q7GBYpvNsReRw3FtQ';
@@ -1292,7 +1296,7 @@ function renderAR(){
         </div>
       </div>
       <div class="ar-mid">
-        ${rec.products?'<div>📦 '+rec.products+'</div>':''}
+        <div class="ar-products">${rec.products?'📦 '+rec.products:''}</div>
         <div>📅 開立：${rec.issue_date||'—'} · 帳期：${rec.payment_terms||60}天${dueStr?' · '+dueStr:''}</div>
         ${rec.note?'<div>📝 '+rec.note+'</div>':''}
         ${rec.paid_date?'<div>✓ 收款日：'+rec.paid_date+'</div>':''}
@@ -1302,6 +1306,7 @@ function renderAR(){
         ${rec.status!=='cancelled'&&rec.status!=='paid'?`<button class="bs" onclick="arMarkCancelled('${rec.id}')">取消</button>`:''}
         <button class="bs bd" onclick="arDelete('${rec.id}')">🗑</button>
       </div>`;
+    if(typeof arRenderInvoiceProducts==='function')arRenderInvoiceProducts(rec,div.querySelector('.ar-products'));
     if(typeof arRenderInvoiceEmail==='function')arRenderInvoiceEmail(rec,div.querySelector('.ar-mid'));
     list.appendChild(div);
   });
