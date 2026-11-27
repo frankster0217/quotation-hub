@@ -52,6 +52,12 @@ function arRenderInvoiceEmail(rec,parent){
         detail.appendChild(link);
       }else{detail.appendChild(document.createTextNode(result.email));}
     }else{detail.appendChild(document.createTextNode('未填寫 Email'));}
+  }else if(result.state==='idle'){
+    detail.className='ar-email-status';
+    detail.appendChild(document.createTextNode('Email：'));
+    const read=document.createElement('button');read.type='button';read.className='bs';
+    read.textContent='讀取發票 Email';read.addEventListener('click',arRequestInvoiceEmails);
+    detail.appendChild(read);
   }else{
     detail.className=result.state==='error'?'ar-email-error':'ar-email-status';
     detail.textContent=result.state==='unlinked'?'Email：無有效發票號碼，無法確認':
@@ -111,10 +117,13 @@ async function arLoadInvoiceEmails(){
   }
 }
 
-document.getElementById('ar-email-load').addEventListener('click',()=>{
+function arRequestInvoiceEmails(){
   if(arInvoiceEmailsUnlocked()){arLoadInvoiceEmails();return;}
-  document.getElementById('ar-email-unlock').hidden=false;document.getElementById('ar-email-pin').focus();
-});
+  const form=document.getElementById('ar-email-unlock');
+  form.hidden=false;form.scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('ar-email-pin').focus();
+}
+document.getElementById('ar-email-load').addEventListener('click',arRequestInvoiceEmails);
 document.getElementById('ar-email-cancel').addEventListener('click',()=>{
   document.getElementById('ar-email-pin').value='';document.getElementById('ar-email-unlock').hidden=true;
 });
