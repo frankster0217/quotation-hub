@@ -116,6 +116,15 @@ button:active{transform:scale(.98)}
 .ar-item .ar-amt{font-size:14px;font-weight:700;color:#1d1d1f;white-space:nowrap}
 .ar-item .ar-sub{font-size:11px;color:#6e6e73;margin-top:3px}
 .ar-item .ar-mid{margin-top:8px;font-size:12px;color:#6e6e73;line-height:1.7}
+.ar-email-tools{margin-bottom:12px;font-size:13px;line-height:1.6}
+.ar-email-tools p{color:#6e6e73;margin-top:5px}
+.ar-email-unlock{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.ar-email-unlock[hidden]{display:none}
+.ar-email-unlock input{width:180px;max-width:100%;font:inherit;padding:9px 11px;border:1px solid #d2d2d7;border-radius:8px}
+.ar-email-row{font-size:13px;margin-top:6px;overflow-wrap:anywhere}
+.ar-email-row a{color:#0071e3}
+.ar-email-status{color:#6e6e73}
+.ar-email-error{color:#b42318}
 .ar-item .ar-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .ar-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap}
 .ar-badge.pending{background:#fff3cd;color:#856404}
@@ -458,7 +467,19 @@ button:active{transform:scale(.98)}
     </div>
 
     <!-- Search -->
-    <div class="sw" style="margin-bottom:12px"><input type="search" id="ar-search" placeholder="Search company, product, note…"></div>
+    <div class="sw" style="margin-bottom:12px"><input type="search" id="ar-search" placeholder="Search company, product, email, note…"></div>
+
+    <div class="ar-email-tools">
+      <button type="button" id="ar-email-load">顯示發票 Email</button>
+      <form id="ar-email-unlock" class="ar-email-unlock" hidden>
+        <label for="ar-email-pin">Amego 存取碼</label>
+        <input type="password" id="ar-email-pin" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" autocomplete="off" required aria-describedby="ar-email-help">
+        <button type="submit" class="bp">讀取 Email</button>
+        <button type="button" id="ar-email-cancel">取消</button>
+      </form>
+      <p id="ar-email-help">讀取每張發票實際填寫的 Email；不會寄信。是否已寄送請以 Amego 為準。存取碼只用於本次頁面，不會儲存。</p>
+      <p id="ar-email-progress" role="status" aria-live="polite"></p>
+    </div>
 
     <!-- List -->
     <div id="ar-list"></div>
@@ -470,6 +491,7 @@ button:active{transform:scale(.98)}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="ar-invoice-email.js"></script>
 <script>
 const SB_URL='https://kyhwsxdtrgmrkwjpftjl.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5aHdzeGR0cmdtcmt3anBmdGpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzYwNTMsImV4cCI6MjA5NjE1MjA1M30.FpZevI14015RdYwoKr1DuHiMX8q7GBYpvNsReRw3FtQ';
@@ -482,6 +504,7 @@ async function checkSession(){
 }
 
 function showLogin(){
+  if(typeof arResetInvoiceEmails==='function')arResetInvoiceEmails();
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('app').style.display='none';
 }
@@ -1187,6 +1210,7 @@ async function loadAR(){
     if(error)throw error;
     arRecords=data||[];
     renderAR();
+    if(typeof arInvoiceEmailsUnlocked==='function'&&arInvoiceEmailsUnlocked())arLoadInvoiceEmails();
   }catch(e){console.error('AR load error:',e);}
 }
 
@@ -1237,7 +1261,7 @@ function renderAR(){
     if(arFilter==='paid') return r.status==='paid';
     return true;
   });
-  if(q)fil=fil.filter(r=>(r.company_name+' '+(r.products||'')+(r.note||'')).toLowerCase().includes(q));
+  if(q)fil=fil.filter(r=>(r.company_name+' '+(r.products||'')+' '+(r.note||'')+' '+(r.invoice_number||'')+' '+(typeof arInvoiceEmailSearchText==='function'?arInvoiceEmailSearchText(r):'')).toLowerCase().includes(q));
 
   const list=document.getElementById('ar-list');list.innerHTML='';
   document.getElementById('ar-empty').style.display=fil.length?'none':'block';
@@ -1278,6 +1302,7 @@ function renderAR(){
         ${rec.status!=='cancelled'&&rec.status!=='paid'?`<button class="bs" onclick="arMarkCancelled('${rec.id}')">取消</button>`:''}
         <button class="bs bd" onclick="arDelete('${rec.id}')">🗑</button>
       </div>`;
+    if(typeof arRenderInvoiceEmail==='function')arRenderInvoiceEmail(rec,div.querySelector('.ar-mid'));
     list.appendChild(div);
   });
 }
